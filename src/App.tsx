@@ -7,7 +7,7 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <h1>WebGPU Support Check</h1>
+      <h1 className="text-3xl font-bold">WebGPU Support Check</h1>
       {isWebGPUSupported() ? (
         <p>Your browser supports WebGPU!</p>
       ) : (
