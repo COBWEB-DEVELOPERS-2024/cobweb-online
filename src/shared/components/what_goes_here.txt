@@ -1,0 +1,2 @@
+Any React components that will be shared among many modules. Some things from org/cobweb/swingutil may be useful to
+recreate here (use discretion)

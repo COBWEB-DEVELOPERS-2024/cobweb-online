@@ -1,0 +1,2 @@
+React component views that will be shared among different overlays. More importantly, the interfaces for overlays
+and popup info windows. Inspiration/framework for this can be found in the org/cobweb/cobweb2/ui/swing folder

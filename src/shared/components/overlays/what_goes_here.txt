@@ -1,0 +1,2 @@
+Everything from org/cobweb/cobweb2/ui/swing that can be a component or an interface for a component (things that
+weren't added to shared/processing/overlays)

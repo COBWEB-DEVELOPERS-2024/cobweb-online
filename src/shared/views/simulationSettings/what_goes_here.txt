@@ -1,0 +1,3 @@
+React component views that will be shared among simulation settings. More importantly, the interfaces for
+simulation settings panels. Inspiration/framework for this can be found in a few of the more general files (namely
+the interfaces) in the org/cobweb/cobweb2/ui/swing/config folder
