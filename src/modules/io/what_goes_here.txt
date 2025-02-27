@@ -1,0 +1,5 @@
+Similar idea to modules/overlays and modules/simulationSettings in this project, but for IO features (such as
+exporting the simulation to xml, exporting data to css spreadsheets, etc.)
+
+Useful stuff for this context will be in org/cobweb/io and org/cobweb/cobweb2/io, but there will have to be a lot
+built from the ground-up

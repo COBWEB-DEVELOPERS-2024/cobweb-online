@@ -1,0 +1,2 @@
+Any react components that will be needed to make this simulation settings panel. To get a specific view of what will
+be needed, find this settings panel's file in the org/cobweb/cobweb2/ui/swing/config folder
