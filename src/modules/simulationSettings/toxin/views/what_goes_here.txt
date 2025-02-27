@@ -1,0 +1,3 @@
+One view that will house all of the react components for this settings panel. Should implement the interface for a
+settings panel in shared/views/simulationSettings. To get a specific view of what will be needed, find this
+settings panel's file in the org/cobweb/cobweb2/ui/swing/config folder

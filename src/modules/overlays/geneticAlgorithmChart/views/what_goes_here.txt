@@ -1,0 +1,3 @@
+Two views, one for the overlay and one for the popup info window, both of them implementing the interfaces for them
+from shared/views/overlays. Inspiration/framework for this be found in this overlay's folder located in
+org/cobweb/cobweb2/ui/swing

@@ -1,0 +1,2 @@
+All loose files (not in subfolders) in org/cobweb/cobweb2/ui, and things in org/cobweb/cobweb2/ui/swing that aren't
+components or interfaces for components (those should go in shared/components/overlays)

@@ -1,0 +1,3 @@
+Everything in this simulation settings' folder in org/cobweb/cobweb2/plugins (the specific subfolders, i.e. abiotic,
+not just any files lying around in this folder or a subfolder. MAKE SURE THE NAME/IDEA OF THIS FOLDER MATCHES THE
+SUBFOLDER OF org/cobweb/cobweb2/plugins YOU'RE TAKING FROM)

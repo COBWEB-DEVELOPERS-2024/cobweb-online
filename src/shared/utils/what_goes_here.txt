@@ -1,0 +1,2 @@
+Functions, classes, or interfaces that will be useful for many applications across the project (e.g. getting
+environment variables). Some things from org/cobweb/util may be useful to recreate here (use discretion)
