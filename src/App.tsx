@@ -1,20 +1,14 @@
 import React from 'react';
+import WebGPUCanvas from './modules/cobwebGrid/components/WebGPUCanvas';
+import Navbar from './shared/views/Navbar';
 
 const App: React.FC = () => {
-  const isWebGPUSupported = () => {
-    return 'gpu' in navigator;
-  };
-
-  return (
-    <div>
-      <h1 className="text-3xl font-bold">WebGPU Support Check</h1>
-      {isWebGPUSupported() ? (
-        <p>Your browser supports WebGPU!</p>
-      ) : (
-        <p>WebGPU is not supported in your browser.</p>
-      )}
-    </div>
-  );
+	return (
+		<div className="bg-emerald-50 min-h-screen flex flex-col items-center justify-center">
+			<Navbar />
+			<WebGPUCanvas />
+		</div>
+	);
 };
 
 export default App;
