@@ -23,7 +23,7 @@ const FileNavButton: React.FC = () => {
     return (
         <Dropdown>
             <DropdownTrigger>
-                <Button className='text-base bg-emerald-50 text-emerald-800'>
+                <Button className='text-base bg-white text-emerald-800'>
                     File
                 </Button>
             </DropdownTrigger>

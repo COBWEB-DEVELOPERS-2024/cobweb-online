@@ -122,7 +122,7 @@ const SimulationNavButton: React.FC = () => {
 
     return (
         <>
-            <Button onPress={onOpen} className='text-base bg-emerald-50 text-emerald-800'>
+            <Button onPress={onOpen} className='text-base bg-white text-emerald-800'>
                 Simulation
             </Button>
             <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="4xl" isDismissable={false} isKeyboardDismissDisabled={false} hideCloseButton={true}>
