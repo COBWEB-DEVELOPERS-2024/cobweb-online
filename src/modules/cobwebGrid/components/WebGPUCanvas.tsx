@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
-import { initCobwebGrid } from "./webgpuCobwebGrid";
+import { initCobwebSimulation } from "./testWebGPU.js";
 
 const WebGPUCanvas = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
         if (canvasRef.current) {
-            initCobwebGrid(canvasRef.current).catch(console.error);
+            initCobwebSimulation(canvasRef.current).catch(console.error);
         }
     }, []);
 

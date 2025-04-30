@@ -3,6 +3,7 @@ import { Location } from './Location.js';
 import { Drop } from './Drop.js';
 import { Updatable } from './Updatable.js';
 
+
 export class Environment extends Updatable {
     static FLAG_STONE = 1;
     static FLAG_FOOD = 2;
