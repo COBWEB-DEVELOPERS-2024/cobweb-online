@@ -28,7 +28,7 @@ This repository contains all code needed to run CobwebOnline: the frontend inter
                                      ▼
           ┌───────────────────────────────────────────────┐
           │ WebGPUComplexEnvironment (JavaScript/TS Class)│
-          │ - Initializes GPU buffers (agents, food, stones)│
+          │ - Initializes GPU buffers (agents,food,stones)│
           │ - Uploads data to GPU                         │
           │ - Dispatches compute workgroups               │
           │ - Downloads updated state from GPU            │
@@ -36,9 +36,9 @@ This repository contains all code needed to run CobwebOnline: the frontend inter
                                        │
                                        ▼
                         ┌────────────────────────────┐
-                        │    Simulation Controller    │
-                        │ - Adds agents, food, stones │
-                        │ - Calls step() per frame    │
+                        │    RandomCobwebinit.ts     │
+                        │ - Adds agents, food, stones│
+                        │ - Calls step() per frame   │
                         │ - Provides state for rendering/logging │
                         └────────────────────────────┘
 ```
