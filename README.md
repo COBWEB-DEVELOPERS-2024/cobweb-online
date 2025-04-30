@@ -67,10 +67,9 @@ src/
 │       ├── WebGPUComplexEnvironment.js
 │       ├── cobwebGridShader.wgsl   <-- renders grid, food, agents
 │       ├── agentUpdateShader.wgsl  <-- runs agent simulation logic
-│
-├── processing/
-│   ├── ai/, foodWeb/, etc.
-│   └── ComplexAgent.js, ComplexEnvironment.js
+│       ├── processing/
+│           ├── ai/, foodWeb/, etc.
+│           └── ComplexAgent.js, ComplexEnvironment.js
 │
 ├── routes/
 │   └── (auth, settings, etc. - site navigation structure)
