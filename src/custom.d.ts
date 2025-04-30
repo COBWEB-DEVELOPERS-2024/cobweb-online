@@ -1,6 +1,6 @@
-// TypeScript declaration so Vite can import .wgsl files
+// TypeScript declaration so Vite can import .wgsl files and it won't complain
 
-declare module '*.wgsl' {
+declare module '*.wgsl?raw' {
     const code: string;
     export default code;
 }
