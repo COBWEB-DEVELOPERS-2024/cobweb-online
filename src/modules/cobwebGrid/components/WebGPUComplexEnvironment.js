@@ -17,6 +17,12 @@ export class WebGPUComplexEnvironment extends Environment {
         this.pipeline = null;
         this.maxFood = 500;
         this.foodBuffer = null;
+        this.stones = [];
+        this.maxStones = 200;
+        this.stoneBuffer = null;
+        this.simParamsBuffer = null;
+
+
 
     }
 
@@ -31,6 +37,16 @@ export class WebGPUComplexEnvironment extends Environment {
         this.foodBuffer = this.device.createBuffer({
             size: this.maxFood * 3 * 4,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
+        });
+
+        this.stoneBuffer = this.device.createBuffer({
+            size: this.maxStones * 2 * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        this.simParamsBuffer = this.device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
 
@@ -53,7 +69,10 @@ export class WebGPUComplexEnvironment extends Environment {
             layout: this.pipeline.getBindGroupLayout(0),
             entries: [
                 { binding: 0, resource: { buffer: this.agentBuffer } },
-                { binding: 1, resource: { buffer: this.foodBuffer } }
+                { binding: 1, resource: { buffer: this.foodBuffer } },
+                { binding: 2, resource: { buffer: this.stoneBuffer } },
+                { binding: 3, resource: { buffer: this.simParamsBuffer } }
+
             ]
         });
     }
@@ -78,8 +97,11 @@ export class WebGPUComplexEnvironment extends Environment {
         this.setAgent(location, agent);
     }
 
-    addFood(location, foodtype = 0) {
-        this.food.push({ x: location.x, y: location.y, foodtype });
+    addFood(location, foodType = 0) {
+        this.food.push({ x: location.x, y: location.y, foodType });
+    }
+    addStone(location) {
+        this.stones.push({ x: location.x, y: location.y });
     }
 
 
@@ -115,14 +137,35 @@ export class WebGPUComplexEnvironment extends Environment {
     }
 
     async uploadFoodToGPU() {
+        const activeFood = this.food.filter(f => f.x >= 0 && f.y >= 0);
+        this.uploadedFoodCount = activeFood.length; // track how many we wrote
+        console.log(this.food)
         const staging = new Float32Array(this.maxFood * 3);
-        for (let i = 0; i < this.food.length; i++) {
-            staging[i * 3 + 0] = this.food[i].x;
-            staging[i * 3 + 1] = this.food[i].y;
-            staging[i * 3 + 2] = this.food[i].ftype ?? 0;
+        for (let i = 0; i < activeFood.length; i++) {
+            staging[i * 3 + 0] = activeFood[i].x;
+            staging[i * 3 + 1] = activeFood[i].y;
+            staging[i * 3 + 2] = activeFood[i].foodType ?? 0;
         }
+
         this.device.queue.writeBuffer(this.foodBuffer, 0, staging.buffer);
     }
+
+
+    cleanUpFood() {
+        this.food = this.food.filter(f => f.x >= 0 && f.y >= 0);
+    }
+
+
+
+    async uploadStonesToGPU() {
+        const staging = new Float32Array(this.maxStones * 2);
+        for (let i = 0; i < this.stones.length; i++) {
+            staging[i * 2 + 0] = this.stones[i].x;
+            staging[i * 2 + 1] = this.stones[i].y;
+        }
+        this.device.queue.writeBuffer(this.stoneBuffer, 0, staging.buffer);
+    }
+
 
     async downloadAgentsFromGPU() {
         const readBuffer = this.device.createBuffer({
@@ -152,20 +195,51 @@ export class WebGPUComplexEnvironment extends Environment {
 
         readBuffer.unmap();
     }
+    async downloadFoodFromGPU() {
+        const readBuffer = this.device.createBuffer({
+            size: this.maxFood * 3 * 4,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
+
+        const encoder = this.device.createCommandEncoder();
+        encoder.copyBufferToBuffer(this.foodBuffer, 0, readBuffer, 0, this.maxFood * 3 * 4);
+        this.device.queue.submit([encoder.finish()]);
+
+        await readBuffer.mapAsync(GPUMapMode.READ);
+        const array = new Float32Array(readBuffer.getMappedRange());
+
+        // Only update the ones we know were uploaded
+        for (let i = 0; i < this.uploadedFoodCount; i++) {
+            this.food[i].x = array[i * 3 + 0];
+            this.food[i].y = array[i * 3 + 1];
+            this.food[i].foodType = array[i * 3 + 2];
+        }
+        console.log(this.food)
+
+        readBuffer.unmap();
+    }
+
+
+
 
 
 
     async update() {
         await this.uploadFoodToGPU();
+        await this.uploadStonesToGPU();
         const commandEncoder = this.device.createCommandEncoder();
         const passEncoder = commandEncoder.beginComputePass();
         passEncoder.setPipeline(this.pipeline);
         passEncoder.setBindGroup(0, this.agentBindGroup);
         passEncoder.dispatchWorkgroups(Math.ceil(this.agents.length / 64));
         passEncoder.end();
+        const rand = Math.floor(Math.random() * 1000000);
+        this.device.queue.writeBuffer(this.simParamsBuffer, 0, new Uint32Array([rand]));
 
         this.device.queue.submit([commandEncoder.finish()]);
         await this.downloadAgentsFromGPU();
+        await this.downloadFoodFromGPU();
+        this.cleanUpFood();
 
     }
 

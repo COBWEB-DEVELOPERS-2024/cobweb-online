@@ -12,8 +12,12 @@ function addRandomFood(simulation: any, amount: number) {
     for (let i = 0; i < amount; i++) {
         const x = Math.floor(Math.random() * 64);
         const y = Math.floor(Math.random() * 64);
-        simulation.addFood({ x, y }, Math.floor(Math.random() * 4));
+        simulation.addFood({ x, y }, 1);
     }
+        const x = Math.floor(Math.random() * 64);
+        const y = Math.floor(Math.random() * 64);
+        simulation.addFood({ x, y }, 2);
+
 }
 
 export async function randomCobwebInit(): Promise<any> {
@@ -28,8 +32,8 @@ export async function randomCobwebInit(): Promise<any> {
     await simulation.initialize();
 
     // populate with random agents and food
-    addRandomAgents(simulation, 10);
-    addRandomFood(simulation, 50);
+    addRandomAgents(simulation, 50);
+    addRandomFood(simulation, 10);
 
     // upload agents to simulation, return the simulation
     await simulation.uploadAgents();
@@ -64,7 +68,7 @@ export function getFoodLocationColors(simulation: Simulation): any {
     for (let i = 0; i < food.length; i++) {
         const f = food[i];
         foodLocations.push([f.x, f.y]);
-        foodColors.push(f.foodtype);
+        foodColors.push(f.foodType);
     }
 
     return [foodLocations, foodColors];
