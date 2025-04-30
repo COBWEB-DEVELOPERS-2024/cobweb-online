@@ -57,7 +57,7 @@ This dual usage lets the simulation run entirely on the GPU without needing any 
 ---
 
 ## Project Structure (Simplified)
-
+Every directory has a "What_goes_here.txt" file to give additional information on the contents of its folder.
 ```plaintext
 src/
 ├── modules/
