@@ -35,11 +35,14 @@ export class ComplexAgentParams {
         this.poop = -1;
         this.childType = -1;
         this.probGiveBirthToOtherType = 0;
+
         this.foodweb = new FoodwebParams(env);
     }
 
     clone() {
-        const clone = new ComplexAgentParams(null);
+        const clone = new ComplexAgentParams({
+            getAgentTypes: () => this.foodweb.canEatAgent.length
+        });
         Object.assign(clone, this);
         clone.foodweb = this.foodweb.clone();
         return clone;
