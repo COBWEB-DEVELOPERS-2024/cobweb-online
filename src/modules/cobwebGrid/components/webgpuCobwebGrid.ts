@@ -119,9 +119,6 @@ export async function initCobwebGrid(
         const shapes: number[] = [];
 
         // build the triangles: black‐outer and colored‐inner
-        // triLocations = [[8,8], [55,10], [32,32], [10,50]];
-        // triColors = [0, 2, 1, 3];
-        // triRotations = [0, 1, 2, 3];
         const innerTriangleFactor = 0.5;
         for (let i = 0; i < triLocations.length; i++) {
             const [cx, cy] = triLocations[i];
@@ -153,8 +150,6 @@ export async function initCobwebGrid(
         }
 
         // build the squares: 2 triangles each
-        // sqLocations = [[15, 15], [48, 5], [5, 45], [30, 60]];
-        // sqColors = [0, 2, 1, 3];
         for (let i = 0; i < sqLocations.length; i++) {
             const [cx, cy] = sqLocations[i];
             const [r, g, b] = colors[sqColors[i]];

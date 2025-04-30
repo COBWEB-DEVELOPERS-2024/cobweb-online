@@ -1,7 +1,7 @@
 import { SimulationConfig } from "./SimulationConfig.js";
 import { WebGPUComplexEnvironment } from "../components/WebGPUComplexEnvironment.js";
 
-export class Simulation {
+export default class Simulation {
     constructor(device) {
         this.device = device;
         this.simulationConfig = new SimulationConfig();
@@ -12,15 +12,15 @@ export class Simulation {
 
     async initialize() {
         await this.environment.initializeGPU();
-        console.log("Environment initialized!");
+        console.log("Environment initialized! (from Simulation.js)");
     }
 
     addAgent(location, type = 0) {
         this.environment.addAgent(location, type);
     }
 
-    addFood(location) {
-        this.environment.addFood(location);
+    addFood(location, type = 0) {
+        this.environment.addFood(location, type);
     }
 
     async uploadAgents() {

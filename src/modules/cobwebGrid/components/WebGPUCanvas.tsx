@@ -1,5 +1,12 @@
 import { useEffect, useRef } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
+import Simulation from '../processing/Simulation';
+import {
+    randomCobwebInit,
+    stepCobwebSimulation,
+    getAgentLocationRotationColors,
+    getFoodLocationColors
+} from "./randomCobwebInit";
 
 interface WebGPUCanvasProps {
     paused: boolean;
@@ -12,11 +19,12 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
 
-    const defaultTriLocations = [[8, 8], [55, 10], [32, 32], [10, 50]];
-    const defaultTriRotations = [0, 2, 1, 3];
-    const defaultTriColors = [0, 1, 2, 3];
-    const defaultSqLocations = [[15, 15], [48, 5], [5, 45], [30, 60]];
-    const defaultSqColors = [0, 1, 2, 3];
+    var simulation: Simulation | null = null;
+    var triLocations: number[][] = [];
+    var triRotations: number[] = [];
+    var triColors: number[] = [];
+    var sqLocations: number[][] = [];
+    var sqColors: number[] = [];
 
     // useEffect to initialize the canvas and renderer
     useEffect(() => {
@@ -25,32 +33,40 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
 
         // initialize the canvas with WebGPU, obtain the renderer so we can later update the grid
         if (canvasRef.current) {
-            initCobwebGrid(
-                canvasRef.current,
-                defaultTriLocations,
-                defaultTriRotations,
-                defaultTriColors,
-                defaultSqLocations,
-                defaultSqColors
-            ).then(renderer => {
-                rendererRef.current = renderer;
-            }).catch(console.error);
+            randomCobwebInit().then(sim => {
+                simulation = sim;
+                console.log("Simulation initialized:", simulation?.getFoodData());
+
+                [triLocations, triRotations, triColors] = getAgentLocationRotationColors(sim);
+                [sqLocations, sqColors] = getFoodLocationColors(sim);
+
+                initCobwebGrid(
+                    canvasRef.current!,
+                    triLocations,
+                    triRotations,
+                    triColors,
+                    sqLocations,
+                    sqColors
+                ).then(renderer => {
+                    rendererRef.current = renderer;
+                }).catch(console.error);
+            });
         }
     }, []);
 
     // helper: a function to update the grid
     function updateGrid() {
         if (rendererRef.current) {
-            for (let i = 0; i < defaultTriLocations.length; i++) {
-                defaultTriLocations[i][0] += 1;
-            }
-            rendererRef.current.updateShapes(
-                defaultTriLocations,
-                defaultTriRotations,
-                defaultTriColors,
-                defaultSqLocations,
-                defaultSqColors
-            );
+            // for (let i = 0; i < triLocations.length; i++) {
+            //     triLocations[i][0] += 1;
+            // }
+            // rendererRef.current.updateShapes(
+            //     triLocations,
+            //     triRotations,
+            //     triColors,
+            //     sqLocations,
+            //     sqColors
+            // );
             console.log(rendererRef.current);
         }
     }
