@@ -36,9 +36,8 @@ export async function randomCobwebInit(): Promise<any> {
     return simulation;
 }
 
-export async function stepCobwebSimulation(simulation: Simulation): Promise<any[]> {
-    simulation.step();
-    return simulation.getSimulationState();
+export async function stepCobwebSimulation(simulation: Simulation) {
+    await simulation.step();
 }
 
 export function getAgentLocationRotationColors(simulation: Simulation): any {

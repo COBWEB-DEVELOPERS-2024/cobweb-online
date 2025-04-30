@@ -18,13 +18,19 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
-
-    var simulation: Simulation | null = null;
+    const simulationRef = useRef<Simulation | null>(null);
     var triLocations: number[][] = [];
     var triRotations: number[] = [];
     var triColors: number[] = [];
     var sqLocations: number[][] = [];
     var sqColors: number[] = [];
+
+    // helper: update the rendering data defined above
+    function updateRenderingData() {
+        if (!simulationRef.current) return;
+        [triLocations, triRotations, triColors] = getAgentLocationRotationColors(simulationRef.current);
+        [sqLocations, sqColors] = getFoodLocationColors(simulationRef.current);
+    }
 
     // useEffect to initialize the canvas and renderer
     useEffect(() => {
@@ -34,12 +40,8 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
         // initialize the canvas with WebGPU, obtain the renderer so we can later update the grid
         if (canvasRef.current) {
             randomCobwebInit().then(sim => {
-                simulation = sim;
-                console.log("Simulation initialized:", simulation?.getFoodData());
-
-                [triLocations, triRotations, triColors] = getAgentLocationRotationColors(sim);
-                [sqLocations, sqColors] = getFoodLocationColors(sim);
-
+                simulationRef.current = sim;
+                updateRenderingData();
                 initCobwebGrid(
                     canvasRef.current!,
                     triLocations,
@@ -56,18 +58,18 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
 
     // helper: a function to update the grid
     function updateGrid() {
-        if (rendererRef.current) {
-            // for (let i = 0; i < triLocations.length; i++) {
-            //     triLocations[i][0] += 1;
-            // }
-            // rendererRef.current.updateShapes(
-            //     triLocations,
-            //     triRotations,
-            //     triColors,
-            //     sqLocations,
-            //     sqColors
-            // );
-            console.log(rendererRef.current);
+        if (rendererRef.current && simulationRef.current) {
+            console.log(simulationRef.current);
+            stepCobwebSimulation(simulationRef.current).then(() => {
+                updateRenderingData();
+                rendererRef.current!.updateShapes(
+                    triLocations,
+                    triRotations,
+                    triColors,
+                    sqLocations,
+                    sqColors
+                );
+            }).catch(console.error);
         }
     }
 
@@ -79,10 +81,9 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
         // start the update loop for the cobweb grid
         const id = setInterval(() => {
             updateGrid();
-        }, 1000);
+        }, 500);
 
         // clear the interval on unmount to prevent memory leakage
-        console.log("Interval ID:", id);
         return () => clearInterval(id);
     }, [paused]);
 
