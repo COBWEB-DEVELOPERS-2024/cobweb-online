@@ -16,7 +16,6 @@ export class Simulation {
     }
 
     addAgent(location, type = 0) {
-
         this.environment.addAgent(location, type);
     }
 
@@ -43,5 +42,12 @@ export class Simulation {
 
     getTime() {
         return this.time;
+    }
+
+    getSimulationState() {
+        return {
+            agents: this.getAgentData(),
+            food: this.getFoodData()
+        };
     }
 }
