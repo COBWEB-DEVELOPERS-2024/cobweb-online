@@ -1,4 +1,4 @@
-import { Simulation } from "../processing/Simulation.js";
+import { Simulation } from "../processing/Simulation.ts";
 
 export async function initCobwebSimulation(canvas) {
     console.log("🚀 Starting WebGPU Simulation test...");

@@ -33,15 +33,17 @@ export async function randomCobwebInit(): Promise<any> {
 
     // populate with random agents and food
     addRandomAgents(simulation, 50);
-    addRandomFood(simulation, 10);
+    addRandomFood(simulation, 50);
 
     // upload agents to simulation, return the simulation
     await simulation.uploadAgents();
+    await simulation.environment.uploadFoodToGPU();
     return simulation;
 }
 
 export async function stepCobwebSimulation(simulation: Simulation) {
     await simulation.step();
+    console.log(simulation.getSimulationState())
 }
 
 export function getAgentLocationRotationColors(simulation: Simulation): any {
@@ -52,6 +54,8 @@ export function getAgentLocationRotationColors(simulation: Simulation): any {
 
     for (let i = 0; i < agents.length; i++) {
         const agent = agents[i];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         agentLocations.push([agent.position.x, agent.position.y]);
         agentRotations.push(0);
         agentColors.push(agent.type);
@@ -67,9 +71,13 @@ export function getFoodLocationColors(simulation: Simulation): any {
 
     for (let i = 0; i < food.length; i++) {
         const f = food[i];
+
+        if (f.x < 0 || f.y < 0 || f.foodType === -9999 || f.foodType === 9999 || f.foodType === undefined) continue;
+
         foodLocations.push([f.x, f.y]);
         foodColors.push(f.foodType);
     }
 
     return [foodLocations, foodColors];
 }
+

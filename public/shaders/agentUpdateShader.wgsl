@@ -1,103 +1,99 @@
 struct Agent {
-    pos: vec2f,
-    dir: vec2f,
-    energy: f32,
+    pos: vec2<u32>,
+    _pad: vec2<u32>,
+    energy: u32,
     alive: u32,
-    atype: u32,
-    age: u32, // unused
 };
 
 struct Food {
-    pos: vec2f,
+    x: u32,
+    y: u32,
     foodType: u32,
-};
-
-struct SimParams {
-    tick: u32,
 };
 
 @group(0) @binding(0) var<storage, read_write> agents: array<Agent>;
 @group(0) @binding(1) var<storage, read_write> food: array<Food>;
-@group(0) @binding(2) var<storage, read> stones: array<vec2f>;
-@group(0) @binding(3) var<uniform> params: SimParams;
+@group(0) @binding(2) var<storage, read> stones: array<vec2<u32>>;
+@group(0) @binding(3) var<uniform> randSeed: u32;
+@group(0) @binding(4) var<storage, read_write> occupancyGrid: array<atomic<u32>>;
 
-fn isSameCell(a: vec2f, b: vec2f) -> bool {
-    return abs(a.x - b.x) < 1.0 && abs(a.y - b.y) < 1.0;
+const GRID_SIZE: u32 = 64u;
+const MAX_FOOD: u32 = 500u;
+const MAX_STONES: u32 = 200u;
+const FOOD_TYPE_NONE: u32 = 9999u;
+
+fn hash_u32(x: u32, y: u32, seed: u32) -> u32 {
+    let a = x * 73856093u;
+    let b = y * 19349663u;
+    let c = seed * 83492791u;
+    return a ^ b ^ c;
 }
 
-fn isStone(pos: vec2f) -> bool {
-    for (var i = 0u; i < arrayLength(&stones); i++) {
-        if (isSameCell(pos, stones[i])) {
+fn randomDir(x: u32, y: u32, seed: u32) -> u32 {
+    return hash_u32(x, y, seed) % 4u;
+}
+
+fn gridIndex(x: u32, y: u32) -> u32 {
+    return y * GRID_SIZE + x;
+}
+
+fn isBlocked(x: u32, y: u32) -> bool {
+    for (var i = 0u; i < MAX_STONES; i = i + 1u) {
+        if (stones[i].x == x && stones[i].y == y) {
             return true;
         }
     }
     return false;
 }
 
-fn wrap64(pos: vec2f) -> vec2f {
-    return vec2f(
-        f32((u32(pos.x + 64.0) % 64u)),
-        f32((u32(pos.y + 64.0) % 64u))
-    );
-}
-
-// Simple deterministic hash for pseudo-random number generation
-fn hash(n: u32) -> u32 {
-    var x = n;
-    x = ((x >> 16u) ^ x) * 0x45d9f3bu;
-    x = ((x >> 16u) ^ x) * 0x45d9f3bu;
-    return (x >> 16u) ^ x;
-}
-
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
-    let index = global_id.x;
-    if (index >= arrayLength(&agents)) { return; }
-
-    let agent = &agents[index];
-    if (agent.alive == 0u) { return; }
-
-    // Random direction based on tick and index
-    let seed = params.tick * 73856093u + index * 19349663u;
-    let dir = hash(seed) % 4u;
-
-    var offset = vec2f(0.0, 0.0);
-    if (dir == 0u) {
-        offset = vec2f(1.0, 0.0);  // right
-    } else if (dir == 1u) {
-        offset = vec2f(-1.0, 0.0); // left
-    } else if (dir == 2u) {
-        offset = vec2f(0.0, 1.0);  // up
-    } else {
-        offset = vec2f(0.0, -1.0); // down
+    let id = global_id.x;
+    if (id >= arrayLength(&agents)) {
+        return;
     }
 
-    let newPos = wrap64(agent.pos + offset);
-    if (!isStone(newPos)) {
-        agent.pos = newPos;
+    var agent = agents[id];
+    if (agent.alive == 0u) {
+        return;
     }
 
-    // Eat food
-    for (var i = 0u; i < arrayLength(&food); i++) {
-        if (isSameCell(agent.pos, food[i].pos)) {
-            agent.energy += 25.0;
-            food[i].pos = vec2f(-9999.0, -9999.0);
+    let dir = randomDir(agent.pos.x, agent.pos.y, randSeed);
+    var newPos = agent.pos;
+
+    if (dir == 0u && agent.pos.y > 0u) {
+        newPos.y = agent.pos.y - 1u;
+    } else if (dir == 1u && agent.pos.y < GRID_SIZE - 1u) {
+        newPos.y = agent.pos.y + 1u;
+    } else if (dir == 2u && agent.pos.x > 0u) {
+        newPos.x = agent.pos.x - 1u;
+    } else if (dir == 3u && agent.pos.x < GRID_SIZE - 1u) {
+        newPos.x = agent.pos.x + 1u;
+    }
+
+    if (!isBlocked(newPos.x, newPos.y)) {
+        let idx = gridIndex(newPos.x, newPos.y);
+        let claim = atomicCompareExchangeWeak(&occupancyGrid[idx], 0u, id + 1u);
+        if (claim.exchanged) {
+            agent.pos = newPos;
+        }
+    }
+
+    for (var i = 0u; i < MAX_FOOD; i = i + 1u) {
+        if (food[i].foodType != FOOD_TYPE_NONE &&
+            food[i].x == agent.pos.x &&
+            food[i].y == agent.pos.y) {
+            food[i].foodType = FOOD_TYPE_NONE;
+            agent.energy = agent.energy + 10u;
             break;
         }
     }
 
-
-    // Energy decay
-    agent.energy -= 1.0;
-
-    if (agent.energy <= 0.0) {
+    if (agent.energy > 0u) {
+        agent.energy = agent.energy - 1u;
+    } else {
         agent.alive = 0u;
-        agent.energy = 0.0;
-        return;
     }
 
-    // Clamp energy
-    if (agent.energy > 150.0) {
-        agent.energy = 75.0;
-    }
+    agents[id] = agent;
 }

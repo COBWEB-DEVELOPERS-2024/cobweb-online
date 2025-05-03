@@ -1,4 +1,4 @@
-import { ControllerParams } from '../ControllerParams.js';
+import { ControllerParams } from '../ControllerParams.ts';
 import { LinearWeightsController } from './LinearWeightsController.js';
 import { LinearWeightAgentParam } from './LinearWeightAgentParam.js';
 

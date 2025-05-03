@@ -201,16 +201,23 @@ export async function initCobwebGrid(
 
     // helper: update the shape buffer
     function updateShapes(
-        triLocations: number[][],
-        triRotations: number[],
-        triColors: number[],
-        sqLocations: number[][],
-        sqColors: number[]
+        triLocations: number[][] = [],
+        triRotations: number[] = [],
+        triColors: number[] = [],
+        sqLocations: number[][] = [],
+        sqColors: number[] = []
     ) {
-        const shapeData = buildShapeData(triLocations, triRotations, triColors, sqLocations, sqColors);
+        const shapeData = buildShapeData(
+            triLocations ?? [],
+            triRotations ?? [],
+            triColors ?? [],
+            sqLocations ?? [],
+            sqColors ?? []
+        );
         device.queue.writeBuffer(shapeBuffer, 0, shapeData);
         render(shapeData.length);
     }
+
 
     updateShapes(
         defaultTriLocations,

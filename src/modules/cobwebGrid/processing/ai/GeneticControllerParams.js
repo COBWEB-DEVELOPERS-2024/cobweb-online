@@ -1,4 +1,4 @@
-import { ControllerParams } from '../ControllerParams.js';
+import { ControllerParams } from '../ControllerParams.ts';
 import { GeneticController } from './GeneticController.js';
 import { GeneticStateAgentParams } from './GeneticStateAgentParams.js';
 

@@ -1,4 +1,4 @@
-import { ComplexAgent } from '../ComplexAgent.js';
+import { ComplexAgent } from '../ComplexAgent.ts';
 import { Topology } from '../core/Topology.js';
 
 const ENERGY_THRESHOLD = 160;
