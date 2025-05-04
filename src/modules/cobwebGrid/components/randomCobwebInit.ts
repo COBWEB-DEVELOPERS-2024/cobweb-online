@@ -12,12 +12,8 @@ function addRandomFood(simulation: any, amount: number) {
     for (let i = 0; i < amount; i++) {
         const x = Math.floor(Math.random() * 64);
         const y = Math.floor(Math.random() * 64);
-        simulation.addFood({ x, y }, 1);
+        simulation.addFood({ x, y },  Math.floor(Math.random() * 4));
     }
-        const x = Math.floor(Math.random() * 64);
-        const y = Math.floor(Math.random() * 64);
-        simulation.addFood({ x, y }, 2);
-
 }
 
 export async function randomCobwebInit(): Promise<any> {

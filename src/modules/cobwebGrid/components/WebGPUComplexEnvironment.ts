@@ -3,6 +3,7 @@ import { Environment } from "../../../shared/processing/core/Environment.js";
 import { Location } from "../../../shared/processing/core/Location.ts";
 import Simulation from "../processing/Simulation.ts";
 import { LocationDirection } from "../../../shared/processing/core/LocationDirection.ts";
+import {Direction} from "../../../shared/processing/core/Direction.ts";
 
 type AgentData = {
     x: number;
@@ -36,6 +37,8 @@ export class WebGPUComplexEnvironment extends Environment {
     occupancyGridBuffer: GPUBuffer | null = null;
 
 
+
+
     constructor(simulation: Simulation, device: GPUDevice) {
         super(simulation);
         this.device = device;
@@ -43,7 +46,7 @@ export class WebGPUComplexEnvironment extends Environment {
     }
 
     async initializeGPU() {
-        const agentSize = 6 * 4;
+        const agentSize = 8 * 4;
 
         this.agentBuffer = this.device.createBuffer({
             size: this.maxAgents * agentSize,
@@ -115,7 +118,7 @@ export class WebGPUComplexEnvironment extends Environment {
     }
 
     async uploadAgentsToGPU() {
-        const staging = new Uint32Array(this.maxAgents * 6);
+        const staging = new Uint32Array(this.maxAgents * 8);
         for (let i = 0; i < this.agents.length; i++) {
             const a = this.agents[i];
             staging.set([
@@ -127,9 +130,12 @@ export class WebGPUComplexEnvironment extends Environment {
                 Math.floor(a.position.y),
                 0, 0,
                 Math.floor(a.energy),
-                a.alive ? 1 : 0
-            ], i * 6);
+                a.alive ? 1 : 0,
+                0, // direction x (GPU overwrites this)
+                0  // direction y (GPU overwrites this)
+            ], i * 8);
         }
+
         this.device.queue.writeBuffer(this.agentBuffer!, 0, staging.buffer);
     }
 
@@ -160,27 +166,48 @@ export class WebGPUComplexEnvironment extends Environment {
 
     async downloadAgentsFromGPU() {
         const readBuffer = this.device.createBuffer({
-            size: this.maxAgents * 6 * 4,
+            size: this.maxAgents * 8 * 4,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
 
         const encoder = this.device.createCommandEncoder();
-        encoder.copyBufferToBuffer(this.agentBuffer!, 0, readBuffer, 0, this.maxAgents * 6 * 4);
+        encoder.copyBufferToBuffer(this.agentBuffer!, 0, readBuffer, 0, this.maxAgents * 8 * 4);
         this.device.queue.submit([encoder.finish()]);
         await readBuffer.mapAsync(GPUMapMode.READ);
-        const array = new Uint32Array(readBuffer.getMappedRange());
+
+        const buffer = readBuffer.getMappedRange();
+        const uintView = new Uint32Array(buffer);
+        const intView = new Int32Array(buffer); // Same buffer, interpreted as signed
+
         for (let i = 0; i < this.agents.length; i++) {
+            const agent = this.agents[i];
+            const offset = i * 8;
+
+            // Position
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
-            this.agents[i].position.x = array[i * 6 + 0];
+            agent.position.x = uintView[offset + 0];
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error
-            this.agents[i].position.y = array[i * 6 + 1];
-            this.agents[i].energy = array[i * 6 + 4];
-            this.agents[i].alive = array[i * 6 + 5] === 1;
+            agent.position.y = uintView[offset + 1];
+
+            // Energy and Alive status
+            agent.energy = uintView[offset + 4];
+            agent.alive = uintView[offset + 5] === 1;
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            agent.position.direction = new Direction(
+                intView[offset + 6],
+                intView[offset + 7]
+            );
+
+
         }
+
         readBuffer.unmap();
     }
+
 
     async downloadFoodFromGPU() {
         const readBuffer = this.device.createBuffer({
@@ -209,13 +236,15 @@ export class WebGPUComplexEnvironment extends Environment {
         const rand = Math.floor(Math.random() * 1000000);
         this.device.queue.writeBuffer(this.simParamsBuffer!, 0, new Uint32Array([rand]));
 
+        const zeroGrid = new Uint32Array(64 * 64);
+        this.device.queue.writeBuffer(this.occupancyGridBuffer!, 0, zeroGrid);
+
         const encoder = this.device.createCommandEncoder();
         const pass = encoder.beginComputePass();
         pass.setPipeline(this.pipeline!);
         pass.setBindGroup(0, this.agentBindGroup!);
         pass.dispatchWorkgroups(Math.ceil(this.agents.length / 64));
-        const zeroGrid = new Uint32Array(64 * 64);
-        this.device.queue.writeBuffer(this.occupancyGridBuffer!, 0, zeroGrid);
+
 
         pass.end();
 

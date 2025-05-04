@@ -17,6 +17,9 @@ export class ComplexAgent extends Agent {
     environment!: Environment;
     controller: any;
     params!: ComplexAgentParams;
+    prevX: number | undefined;
+    prevY: number | undefined;
+
 
     constructor(simulation: any, type: number) {
         super(type);
