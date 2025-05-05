@@ -14,9 +14,10 @@ export class FoodBroadcast extends BroadcastPacket {
         let closeness = 1;
         const pos = receiver.getPosition();
         if (pos !== null && !this.foodLocation.equals(pos)) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
-            closeness = 1 / receiver.environment.topology.getDistance(receiver.getPosition(), this.foodLocation);
+            let recieverPosition = receiver.getPosition();
+            if (receiver.environment.topology && recieverPosition) {
+                closeness = 1 / receiver.environment.topology.getDistance(recieverPosition, this.foodLocation);
+            }
         }
         receiver.setCommInbox(closeness);
     }

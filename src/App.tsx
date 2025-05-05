@@ -4,6 +4,7 @@ import Navbar from './shared/views/Navbar';
 
 const App: React.FC = () => {
 	const [paused, setPaused] = React.useState(true);
+	const [speedFactor, setSpeedFactor] = React.useState(8);
 	const [step, setStep] = React.useState(true);
 
 	const togglePause = () => setPaused(!paused);
@@ -12,8 +13,8 @@ const App: React.FC = () => {
 
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">
-			<Navbar paused={paused} togglePause={togglePause} enableStep={enableStep} />
-			<WebGPUCanvas paused={paused} step={step} disableStep={disableStep} />
+			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} />
+			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} />
 		</div>
 	);
 };

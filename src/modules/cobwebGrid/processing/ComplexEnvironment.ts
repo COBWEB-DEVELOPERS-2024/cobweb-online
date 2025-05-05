@@ -5,7 +5,7 @@ import { ComplexAgent } from "./ComplexAgent";
 import { EnvironmentMutator } from "../../../shared/processing/core/EnvironmentMutator.ts";
 import { ComplexAgentParams } from "./ComplexAgentParams";
 import { Drop } from "../../../shared/processing/core/Drop";
-import Simulation from "./Simulation.ts";
+import { Simulation } from "./Simulation.ts";
 
 export class ComplexEnvironment extends Environment {
     agentData: ComplexAgentParams[] = [];

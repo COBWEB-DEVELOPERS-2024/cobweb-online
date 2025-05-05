@@ -1,4 +1,5 @@
-import Simulation from '../processing/Simulation';
+import { Agent } from '../../../shared/processing/core/Agent';
+import { Simulation } from '../processing/Simulation';
 
 function addRandomAgents(simulation: any, amount: number) {
     for (let i = 0; i < amount; i++) {
@@ -42,6 +43,26 @@ export async function stepCobwebSimulation(simulation: Simulation) {
     console.log(simulation.getSimulationState())
 }
 
+function getAgentRotation(agent: Agent): number {
+    switch (agent.position?.direction.x) {
+        case -1:
+            return 3;
+        case 1:
+            return 1;
+        case 0:
+            switch (agent.position?.direction.y) {
+                case -1:
+                    return 0;
+                case 1:
+                    return 2;
+                default:
+                    return 0;
+            }
+        default:
+            return 0;
+    }
+}
+
 export function getAgentLocationRotationColors(simulation: Simulation): any {
     const agents = simulation.getAgentData();
     const agentLocations: number[][] = [];
@@ -50,10 +71,9 @@ export function getAgentLocationRotationColors(simulation: Simulation): any {
 
     for (let i = 0; i < agents.length; i++) {
         const agent = agents[i];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
+        if (agent.position === null || agent.position.x < 0 || agent.position.y < 0) continue;      // skip agent if agent position is null or out of bounds
         agentLocations.push([agent.position.x, agent.position.y]);
-        agentRotations.push(0);
+        agentRotations.push(getAgentRotation(agent));
         agentColors.push(agent.type);
     }
 

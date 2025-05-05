@@ -1,7 +1,7 @@
 import { ComplexAgent } from "../processing/ComplexAgent.ts";
 import { Environment } from "../../../shared/processing/core/Environment.js";
 import { Location } from "../../../shared/processing/core/Location.ts";
-import Simulation from "../processing/Simulation.ts";
+import { Simulation } from "../processing/Simulation.ts";
 import { LocationDirection } from "../../../shared/processing/core/LocationDirection.ts";
 import {Direction} from "../../../shared/processing/core/Direction.ts";
 
@@ -121,12 +121,10 @@ export class WebGPUComplexEnvironment extends Environment {
         const staging = new Uint32Array(this.maxAgents * 8);
         for (let i = 0; i < this.agents.length; i++) {
             const a = this.agents[i];
+            // skip if agent does not have valid position
+            if (!a.position || a.position.x < 0 || a.position.y < 0) continue;
             staging.set([
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
                 Math.floor(a.position.x),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
                 Math.floor(a.position.y),
                 0, 0,
                 Math.floor(a.energy),
@@ -183,20 +181,17 @@ export class WebGPUComplexEnvironment extends Environment {
             const agent = this.agents[i];
             const offset = i * 8;
 
+            // skip if agent does not have a position
+            if (!agent.position) continue;
+
             // Position
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             agent.position.x = uintView[offset + 0];
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             agent.position.y = uintView[offset + 1];
 
             // Energy and Alive status
             agent.energy = uintView[offset + 4];
             agent.alive = uintView[offset + 5] === 1;
 
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
             agent.position.direction = new Direction(
                 intView[offset + 6],
                 intView[offset + 7]

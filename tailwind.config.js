@@ -10,6 +10,14 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [heroui()],
+  plugins: [heroui({
+    themes: {
+      light: {
+        colors: {
+          primary: "#065D44"
+        }
+      }
+    }
+  })],
 }
 

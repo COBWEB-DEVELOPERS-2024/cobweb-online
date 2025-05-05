@@ -1,9 +1,9 @@
 import { SimulationConfig } from "./SimulationConfig";
 import { WebGPUComplexEnvironment } from "../components/WebGPUComplexEnvironment";
-import { Location} from "../../../shared/processing/core/Location.ts";
+import { Location } from "../../../shared/processing/core/Location.ts";
 import { ComplexAgent } from "./ComplexAgent.ts";
 
-export default class Simulation {
+export class Simulation {
     device: GPUDevice;
     simulationConfig: SimulationConfig;
     time: number;
