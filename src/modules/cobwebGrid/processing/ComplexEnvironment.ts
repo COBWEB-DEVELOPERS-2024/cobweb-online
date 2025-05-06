@@ -1,6 +1,6 @@
 import { Environment } from "../../../shared/processing/core/Environment";
 import { Location} from "../../../shared/processing/core/Location";
-import {LocationDirection} from "../../../shared/processing/core/LocationDirection.ts";
+import { LocationDirection } from "../../../shared/processing/core/LocationDirection.ts";
 import { ComplexAgent } from "./ComplexAgent";
 import { EnvironmentMutator } from "../../../shared/processing/core/EnvironmentMutator.ts";
 import { ComplexAgentParams } from "./ComplexAgentParams";
@@ -10,7 +10,7 @@ import { Simulation } from "./Simulation.ts";
 export class ComplexEnvironment extends Environment {
     agentData: ComplexAgentParams[] = [];
     data: ComplexEnvironmentParams | null = null;
-    plugins: Map<Function, EnvironmentMutator> = new Map();
+    plugins: Map<new (...args: any[]) => EnvironmentMutator, EnvironmentMutator> = new Map();
 
     constructor(simulation: Simulation) {
         super(simulation);
@@ -84,43 +84,43 @@ export class ComplexEnvironment extends Environment {
     }
 
     addPlugin<T extends EnvironmentMutator>(plugin: T): void {
-    this.plugins.set(plugin.constructor, plugin);
-}
-
-getPlugin<T extends EnvironmentMutator>(type: Function): T {
-    return this.plugins.get(type) as T;
-}
-
-override update(): void {
-    super.update();
-    this.updateDrops();
-    for (const plugin of this.plugins.values()) {
-    plugin.update();
-}
-}
-
-updateDrops(): void {
-    for (let x = 0; x < this.topology!.width; x++) {
-    for (let y = 0; y < this.topology!.height; y++) {
-        const l = new Location(x, y);
-        if (!this.hasDrop(l)) continue;
-        const d: Drop | null = this.getDrop(l);
-        d?.update();
+        this.plugins.set(plugin.constructor as new (...args: any[]) => EnvironmentMutator, plugin);
     }
-}
-}
 
-loadOldAgents(): void {
-    for (let x = 0; x < this.topology!.width; x++) {
-    for (let y = 0; y < this.topology!.height; y++) {
-        const pos = new Location(x, y);
-        const agent = this.getAgent(pos) as ComplexAgent;
-        if (agent) {
-            agent.setParams(this.agentData[agent.getType()]);
+    getPlugin<T extends EnvironmentMutator>(type: new (...args: any[]) => EnvironmentMutator): T {
+        return this.plugins.get(type) as T;
+    }
+
+    override update(): void {
+        super.update();
+        this.updateDrops();
+        for (const plugin of this.plugins.values()) {
+            plugin.update();
         }
     }
-}
-}
+
+    updateDrops(): void {
+        for (let x = 0; x < this.topology!.width; x++) {
+            for (let y = 0; y < this.topology!.height; y++) {
+                const l = new Location(x, y);
+                if (!this.hasDrop(l)) continue;
+                const d: Drop | null = this.getDrop(l);
+                d?.update();
+            }
+        }
+    }
+
+    loadOldAgents(): void {
+        for (let x = 0; x < this.topology!.width; x++) {
+            for (let y = 0; y < this.topology!.height; y++) {
+                const pos = new Location(x, y);
+                const agent = this.getAgent(pos) as ComplexAgent;
+                if (agent) {
+                    agent.params = this.agentData[agent.getType()];
+                }
+            }
+        }
+    }
 }
 
 export class ComplexEnvironmentParams {

@@ -1,7 +1,12 @@
 import React from 'react';
-import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@heroui/react";
+import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, SharedSelection} from "@heroui/react";
 
 const ViewNavButton: React.FC = () => {
+    // helper: a function to handle the selection of views for the dropdown menu
+    function handleSelectionChange(selectedKeys: SharedSelection) {
+        setSelectedViews(selectedKeys as Set<string>);
+    }
+
     const [selectedViews, setSelectedViews] = React.useState(new Set(['text']));
     const dropdownItems = [
         {
@@ -43,7 +48,7 @@ const ViewNavButton: React.FC = () => {
                     View
                 </Button>
             </DropdownTrigger>
-            <DropdownMenu closeOnSelect={false} selectedKeys={selectedViews} selectionMode='multiple' onSelectionChange={setSelectedViews}>
+            <DropdownMenu closeOnSelect={false} selectedKeys={selectedViews} selectionMode='multiple' onSelectionChange={handleSelectionChange}>
                 {dropdownItems.map(item => (
                     <DropdownItem key={item.key} onPress={item.action}>
                         {item.label}
