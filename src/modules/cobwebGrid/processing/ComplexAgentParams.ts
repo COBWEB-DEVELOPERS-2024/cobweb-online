@@ -41,6 +41,8 @@ export class ComplexAgentParams {
 
     constructor(env: { getAgentTypes: () => number }) {
         this.foodweb = new FoodwebParams(env);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         this.controllerParams = new LinearWeightsControllerParams(env);
     }
 
