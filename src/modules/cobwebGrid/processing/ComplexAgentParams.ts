@@ -1,4 +1,5 @@
 import { FoodwebParams } from './FoodwebParams';
+import {LinearWeightsControllerParams} from "./ai/LinearWeightsControllerParams.ts";
 
 export class ComplexAgentParams {
     initialAgents = 20;
@@ -36,9 +37,11 @@ export class ComplexAgentParams {
     probGiveBirthToOtherType = 0;
 
     foodweb: FoodwebParams;
+    controllerParams: LinearWeightsControllerParams;
 
     constructor(env: { getAgentTypes: () => number }) {
         this.foodweb = new FoodwebParams(env);
+        this.controllerParams = new LinearWeightsControllerParams(env);
     }
 
     clone(): ComplexAgentParams {
@@ -47,6 +50,7 @@ export class ComplexAgentParams {
         });
         Object.assign(clone, this);
         clone.foodweb = this.foodweb.clone();
+        clone.controllerParams = this.controllerParams; // shallow copy is sufficient for now
         return clone;
     }
 

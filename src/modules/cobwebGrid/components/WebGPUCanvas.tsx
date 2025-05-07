@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
-import { Simulation } from '../processing/Simulation';
+import {Simulation} from '../processing/Simulation';
 import {
     randomCobwebInit,
     stepCobwebSimulation,
@@ -10,12 +10,11 @@ import {
 
 interface WebGPUCanvasProps {
     paused: boolean;
-    speedFactor: number;
     step: boolean;
     disableStep: () => void;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
@@ -32,11 +31,6 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         [triLocations, triRotations, triColors] = getAgentLocationRotationColors(simulationRef.current);
         [sqLocations, sqColors] = getFoodLocationColors(simulationRef.current);
         console.log(simulationRef.current.getFoodData());
-    }
-
-    // helper: a function to turn the speed factor into the ms between updates
-    function getSpeed(): number {
-        return Math.floor(1000 / speedFactor);
     }
 
     // useEffect to initialize the canvas and renderer
@@ -88,7 +82,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         // start the update loop for the cobweb grid
         const id = setInterval(() => {
             updateGrid();
-        }, getSpeed());
+        }, 100);
 
         // clear the interval on unmount to prevent memory leakage
         return () => clearInterval(id);

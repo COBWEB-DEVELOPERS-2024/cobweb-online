@@ -1,17 +1,23 @@
-import { LinearWeightsControllerParams } from './LinearWeightsControllerParams.js';
+import { LinearWeightsControllerParams } from './LinearWeightsControllerParams';
+import { SimulationParams } from '../SimulationParams';
 
 export class LinearWeightAgentParam {
-    constructor(simParam) {
+    simParam: SimulationParams;
+    dataInitial: number[][];
+    mutationRate: number;
+
+    constructor(simParam: SimulationParams) {
         this.simParam = simParam;
         this.dataInitial = [];
         this.mutationRate = 0.05;
     }
 
-    resize(envParams) {
-        const newRows = LinearWeightsControllerParams.INPUT_COUNT + this.simParam.getPluginParameters().length;
+    resize(envParams: SimulationParams): void {
+        const newRows = LinearWeightsControllerParams.INPUT_COUNT + envParams.getPluginParameters().length;
         const newCols = LinearWeightsControllerParams.OUTPUT_COUNT;
 
-        const resized = [];
+        const resized: number[][] = [];
+
         for (let i = 0; i < newRows; i++) {
             resized.push([]);
             for (let j = 0; j < newCols; j++) {
@@ -22,6 +28,7 @@ export class LinearWeightAgentParam {
                 }
             }
         }
+
         this.dataInitial = resized;
     }
 }

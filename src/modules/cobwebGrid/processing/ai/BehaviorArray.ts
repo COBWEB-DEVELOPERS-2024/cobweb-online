@@ -1,14 +1,24 @@
+import {BitField} from "../utils/BitField.ts";
+import {Random} from "../utils/Random.ts";
+
 export class BehaviorArray {
-    constructor(inputBits, outputSizes) {
+    inputSize: number;
+    outputSize: number[];
+    outputBits: number;
+    totalOutMask: number;
+    totalInMask: number;
+    size: number;
+    totalBits: number;
+    totalInts: number;
+    array: number[];
+
+    constructor(inputBits: number, outputSizes: number[]) {
         this.inputSize = inputBits;
         this.outputSize = outputSizes;
         this.outputBits = outputSizes.reduce((a, b) => a + b, 0);
 
-        if (this.inputSize > 32)
-            throw new Error("inputSize exceeded 32");
-
-        if (this.outputBits > 32)
-            throw new Error("outputBits exceeded 32");
+        if (this.inputSize > 32) throw new Error("inputSize exceeded 32");
+        if (this.outputBits > 32) throw new Error("outputBits exceeded 32");
 
         this.totalOutMask = (1 << this.outputBits) - 1;
         this.totalInMask = (1 << this.inputSize) - 1;
@@ -21,13 +31,13 @@ export class BehaviorArray {
         this.array = new Array(this.totalInts).fill(0);
     }
 
-    static copyFrom(original) {
+    static copyFrom(original: BehaviorArray): BehaviorArray {
         const newBA = new BehaviorArray(original.inputSize, original.outputSize);
         newBA.array = [...original.array];
         return newBA;
     }
 
-    get(index) {
+    get(index: number): number {
         const bitbase = index * this.outputBits;
         const base = Math.floor(bitbase / 32);
         const basemod = bitbase % 32;
@@ -35,14 +45,13 @@ export class BehaviorArray {
         return (buff >>> basemod) & this.totalOutMask;
     }
 
-    set(index, value) {
+    set(index: number, value: number): void {
         const bitbase = index * this.outputBits;
         const base = Math.floor(bitbase / 32);
         const basemod = bitbase % 32;
         value &= this.totalOutMask;
 
         let buff = (this.array[base] >>> 0) | ((this.array[base + 1] << 32) >>> 0);
-
         buff &= ~(this.totalOutMask << basemod);
         buff |= (value << basemod);
 
@@ -50,14 +59,14 @@ export class BehaviorArray {
         this.array[base + 1] = (buff >>> 32) & 0xFFFFFFFF;
     }
 
-    randomInit(seed) {
+    randomInit(seed: number): void {
         const rng = new Random(seed);
         for (let i = 0; i < this.totalInts; i++) {
             this.array[i] = rng.nextInt();
         }
     }
 
-    mutateOutput(index, strength, rng) {
+    mutateOutput(index: number, strength: number, rng: Random): void {
         let value = this.get(index);
         for (let i = 0; i < this.outputBits; i++) {
             if (rng.nextFloat() < strength) {
@@ -67,10 +76,10 @@ export class BehaviorArray {
         this.set(index, value);
     }
 
-    getOutput(input) {
+    getOutput(input: number): number[] {
         input &= this.totalInMask;
         const bits = this.get(input);
-        const out = [];
+        const out: number[] = [];
         let shift = 0;
         for (const size of this.outputSize) {
             out.push((bits >> shift) & ((1 << size) - 1));
@@ -79,7 +88,7 @@ export class BehaviorArray {
         return out;
     }
 
-    similarity(other) {
+    similarity(other: BehaviorArray): number {
         let total = 0;
         const cmpSize = Math.min(this.size, other.size);
 
@@ -97,7 +106,7 @@ export class BehaviorArray {
         return total / (this.size * this.outputBits);
     }
 
-    static splice(parent1, parent2, rng) {
+    static splice(parent1: BehaviorArray, parent2: BehaviorArray, rng: Random): BehaviorArray {
         const child = BehaviorArray.copyFrom(parent1);
         for (let i = 0; i < parent1.size; i++) {
             if (rng.nextBoolean()) {
@@ -107,9 +116,8 @@ export class BehaviorArray {
         return child;
     }
 
-    copy(mutationRate, rng) {
+    copy(mutationRate: number, rng: Random): BehaviorArray {
         const clone = BehaviorArray.copyFrom(this);
-
         const avgFlips = clone.totalBits * mutationRate;
         const wantFlips = Math.max(0, Math.round(rng.gaussian(0.1) * avgFlips + avgFlips));
 

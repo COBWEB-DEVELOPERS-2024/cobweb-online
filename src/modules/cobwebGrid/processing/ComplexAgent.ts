@@ -3,6 +3,10 @@ import { CircularFifoQueue } from "./plugins/broadcast/CircularFifoQueue.ts";
 import { ComplexAgentParams } from "./ComplexAgentParams.ts";
 import { LocationDirection } from "../../../shared/processing/core/LocationDirection.ts";
 import { Environment } from "../../../shared/processing/core/Environment.ts";
+import {StateParameter} from "../../../shared/processing/core/StateParameter.ts";
+import {AgentState} from "./plugins/AgentState.ts";
+import { LinearWeightsControllerParams } from "./ai/LinearWeightsControllerParams";
+
 
 export class ComplexAgent extends Agent {
     simulation: any;
@@ -19,13 +23,32 @@ export class ComplexAgent extends Agent {
     params!: ComplexAgentParams;
     prevX: number | undefined;
     prevY: number | undefined;
+    private shouldReproduceAsex: boolean | undefined;
+    state?: StateParameter[];
+    extraState: Map<string, AgentState> = new Map();
+    controllerParams: LinearWeightsControllerParams;
+
+
+
+
 
 
     constructor(simulation: any, type: number) {
         super(type);
         this.simulation = simulation;
         this.birthTick = simulation?.getTime?.() ?? 0;
+        this.controllerParams = new LinearWeightsControllerParams(this.simulation.simulationConfig);
+
     }
+
+
+    public getShouldReproduceAsex(): boolean | undefined {
+        return this.shouldReproduceAsex;
+    }
+
+
+
+
 
     init(environment: Environment, pos: LocationDirection, params: ComplexAgentParams, energy: number): void {
         this.environment = environment;
@@ -59,6 +82,19 @@ export class ComplexAgent extends Agent {
         this.simulation.getAgentListener().onStep(this, oldPos, newPos);
         this.position = newPos;
     }
+    getState<T = any>(key: string): T | undefined {
+        return this.extraState.get(key) as T | undefined;
+    }
+
+
+    getMemoryBuffer(): number {
+        return this.memoryBuffer ?? 0;
+    }
+
+    getCommInbox(): number {
+        return this.commInbox ?? 0;
+    }
+
 
     update(): void {
         if (!this.isAlive()) return;
@@ -100,9 +136,15 @@ export class ComplexAgent extends Agent {
 
 
 
+
+
     bumpWall(): void {
         this.changeEnergy(-this.params.stepRockEnergy);
     }
+    setController(controller: any): void {
+        this.controller = controller;
+    }
+
 
     getAdjacentAgent(): ComplexAgent | null {
         if (!this.environment?.topology || !this.position) return null;
@@ -189,9 +231,6 @@ export class ComplexAgent extends Agent {
         this.commInbox = 0;
     }
 
-    setController(controller: any): void {
-        this.controller = controller;
-    }
 
     setMemoryBuffer(val: number): void {
         this.memoryBuffer = val;
@@ -224,4 +263,24 @@ export class ComplexAgent extends Agent {
         }
         return 0;
     }
+
+
+    setShouldReproduceAsex(val: boolean): void {
+        this.shouldReproduceAsex = val;
+    }
+
+    turnLeft(): void {
+        // Example: rotate the direction counter-clockwise
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        this.position!.direction = this.environment.topology.getTurned(this.position!.direction, -1);
+    }
+
+    turnRight(): void {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        this.position!.direction = this.environment.topology.getTurned(this.position!.direction, 1);
+    }
+
+
 }

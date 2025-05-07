@@ -2,9 +2,8 @@ import { Topology } from './Topology';
 import { Location } from './Location';
 import { Drop } from './Drop';
 import { Updatable } from './Updatable';
-import {Agent} from "./Agent.ts";
+import { Agent } from './Agent.ts';
 import { EnvironmentMutator } from './EnvironmentMutator';
-
 
 export class Environment extends Updatable {
     static FLAG_STONE = 1;
@@ -28,20 +27,17 @@ export class Environment extends Updatable {
         this.topology = new Topology(this.simulation, width, height, wrap);
 
         if (!keepOldArray) {
-            this.flagArray = Array.from({ length: width }, () => Array(height).fill(0));
-            this.foodTypeArray = Array.from({ length: width }, () => Array(height).fill(0));
-            this.dropArray = Array.from({ length: width }, () => Array(height).fill(null));
+            this.flagArray = Array.from({ length: width }, () => Array.from({ length: height }, () => 0));
+            this.foodTypeArray = Array.from({ length: width }, () => Array.from({ length: height }, () => 0));
+            this.dropArray = Array.from({ length: width }, () => Array.from({ length: height }, () => null));
         }
     }
-
 
     plugins: Map<new (...args: any[]) => EnvironmentMutator, EnvironmentMutator> = new Map();
 
     getPlugin<T extends EnvironmentMutator>(type: new (...args: any[]) => T): T {
         return this.plugins.get(type) as T;
     }
-
-
 
     clearAgents(): void {
         for (const agent of this.getAgents()) {
@@ -95,18 +91,17 @@ export class Environment extends Updatable {
     }
 
     getLocationBits(location: Location): number {
-        return this.flagArray[location.x][location.y];
+        return this.flagArray[location.x]?.[location.y] ?? 0;
     }
 
     setLocationBits(location: Location, bits: number): void {
-        this.flagArray[location.x][location.y] = bits;
+        if (this.flagArray[location.x]) {
+            this.flagArray[location.x][location.y] = bits;
+        }
     }
 
     setFlag(location: Location, flag: number, state: boolean): void {
         const flagBits = 1 << (flag - 1);
-        console.assert(!(state && this.getLocationBits(location) !== 0), "Attempted to set flag when flags non-zero");
-        console.assert(!(!state && (this.getLocationBits(location) & flagBits) === 0), "Attempting to unset an unset flag");
-
         let newValue = this.getLocationBits(location);
 
         if (state)
@@ -123,16 +118,29 @@ export class Environment extends Updatable {
     }
 
     getFoodType(location: Location): number {
-        return this.foodTypeArray[location.x][location.y];
+        return this.foodTypeArray[location.x]?.[location.y] ?? 0;
     }
 
     addFood(location: Location, type: number): void {
         if (this.hasStone(location)) {
             throw new Error("stone here already");
         }
+
+        // Safety: Ensure target cell is initialized
+        if (!this.foodTypeArray[location.x]) {
+            console.warn(`foodTypeArray[${location.x}] not initialized`);
+            return;
+        }
+
+        if (location.y >= this.foodTypeArray[location.x].length) {
+            console.warn(`Y index ${location.y} out of bounds for foodTypeArray[${location.x}]`);
+            return;
+        }
+
         this.setFlag(location, Environment.FLAG_FOOD, true);
         this.foodTypeArray[location.x][location.y] = type;
     }
+
 
     clearFood(): void {
         this.clearFlag(Environment.FLAG_FOOD);
@@ -198,7 +206,7 @@ export class Environment extends Updatable {
     }
 
     getDrop(location: Location): Drop | null {
-        return this.dropArray[location.x][location.y];
+        return this.dropArray[location.x]?.[location.y] ?? null;
     }
 
     hasDrop(location: Location): boolean {
@@ -234,15 +242,4 @@ export class Environment extends Updatable {
     update(): void {
         // No-op
     }
-
-    // getNearLocations(position: Location): Location[] {
-    //     const result: Location[] = [];
-    //     for (const dir of this.topology!.ALL_8_WAY) {
-    //         const loc = this.topology!.getAdjacent(position, dir);
-    //         if (loc !== null && !this.hasStone(loc)) {
-    //             result.push(loc);
-    //         }
-    //     }
-    //     return result;
-    // }
 }

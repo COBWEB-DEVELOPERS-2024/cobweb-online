@@ -1,51 +1,55 @@
-import { ControllerParams } from '../ControllerParams.ts';
-import { LinearWeightsController } from './LinearWeightsController.js';
-import { LinearWeightAgentParam } from './LinearWeightAgentParam.js';
+import { ControllerParams } from '../ControllerParams';
+import { LinearWeightsController } from './LinearWeightsController';
+import { LinearWeightAgentParam } from './LinearWeightAgentParam';
+import { SimulationParams } from '../SimulationParams';
 
 export class LinearWeightsControllerParams extends ControllerParams {
-    constructor(simParam) {
+    simParam: SimulationParams;
+    agentParams: LinearWeightAgentParam[];
+    runningOutputMean: number[];
+
+    constructor(simParam: SimulationParams) {
         super();
         this.simParam = simParam;
         this.agentParams = [];
 
-        this.runningOutputMean = new Array(LinearWeightsControllerParams.OUTPUT_COUNT).fill(0);
-
+        this.runningOutputMean = Array(LinearWeightsControllerParams.OUTPUT_COUNT).fill(0);
         this.resize(simParam);
     }
 
-    resize(envParams) {
+    resize(envParams: SimulationParams): void {
         const agentCount = this.simParam.getAgentTypes();
         while (this.agentParams.length < agentCount) {
-            this.agentParams.push(new LinearWeightAgentParam(this.simParam));
+            this.agentParams.push(new LinearWeightAgentParam(envParams));
         }
         for (const p of this.agentParams) {
-            p.resize(this.simParam);
+            p.resize(envParams);
         }
     }
 
-    createController(sim, type) {
+    createController(sim: any, type: number): LinearWeightsController {
         return new LinearWeightsController(sim, this, type);
     }
 
-    updateStats(outputIndex, value) {
+    updateStats(outputIndex: number, value: number): void {
         const UPDATE_RATE = 0.001;
         this.runningOutputMean[outputIndex] *= (1 - UPDATE_RATE);
         this.runningOutputMean[outputIndex] += UPDATE_RATE * value;
     }
 
-    getRunningOutputMean() {
+    getRunningOutputMean(): number[] {
         return this.runningOutputMean;
     }
 
-    static get INPUT_COUNT() {
+    static get INPUT_COUNT(): number {
         return 14;
     }
 
-    static get OUTPUT_COUNT() {
+    static get OUTPUT_COUNT(): number {
         return 6;
     }
 
-    static get inputNames() {
+    static get inputNames(): string[] {
         return [
             "Constant", "Energy", "Distance to agent", "Distance to food",
             "Distance to obstacle", "Direction", "Memory", "Communication",
@@ -53,7 +57,7 @@ export class LinearWeightsControllerParams extends ControllerParams {
         ];
     }
 
-    static get outputNames() {
+    static get outputNames(): string[] {
         return [
             "Memory", "Communication", "Left", "Right", "Forward", "Asexual Breed"
         ];

@@ -1,27 +1,29 @@
-import { ControllerParams } from '../ControllerParams.ts';
-import { GeneticController } from './GeneticController.js';
-import { GeneticStateAgentParams } from './GeneticStateAgentParams.js';
+import { ControllerParams } from "../ControllerParams";
+import { GeneticStateAgentParams } from "./GeneticStateAgentParams";
+import { GeneticController } from "./GeneticController";
 
 export class GeneticControllerParams extends ControllerParams {
-    constructor(simParams) {
+    simParam: any;
+    agentParams: GeneticStateAgentParams[] = [];
+
+    constructor(simParams: any) {
         super();
         this.simParam = simParams;
-        this.agentParams = [];
-
         this.resize(simParams);
     }
 
-    resize(envParams) {
+    resize(envParams: any): void {
         const agentCount = this.simParam.getAgentTypes();
         while (this.agentParams.length < agentCount) {
             this.agentParams.push(new GeneticStateAgentParams(this.simParam));
         }
         for (const param of this.agentParams) {
-            param.resize(this.simParam);
+            param.resize(envParams);
         }
+
     }
 
-    createController(sim, type) {
+    createController(sim: any, type: number): GeneticController {
         return new GeneticController(sim, this.agentParams[type]);
     }
 }
