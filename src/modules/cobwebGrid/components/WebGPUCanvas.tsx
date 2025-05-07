@@ -12,6 +12,8 @@ interface WebGPUCanvasProps {
     paused: boolean;
     step: boolean;
     disableStep: () => void;
+    speedFactor: number;
+
 }
 
 const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
