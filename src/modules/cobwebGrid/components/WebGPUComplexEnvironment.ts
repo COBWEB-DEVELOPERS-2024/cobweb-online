@@ -79,10 +79,10 @@ export class WebGPUComplexEnvironment extends Environment {
             size: this.maxAgents * inputCount * floatSize,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         });
-
         const shaderModule = this.device.createShaderModule({
-            code: await (await fetch('/shaders/agentUpdateShader.wgsl')).text(),
+            code: await (await fetch(`${import.meta.env.BASE_URL}shaders/agentUpdateShader.wgsl`)).text(),
         });
+
 
         this.pipeline = this.device.createComputePipeline({
             layout: "auto",
