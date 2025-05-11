@@ -13,10 +13,9 @@ interface WebGPUCanvasProps {
     step: boolean;
     disableStep: () => void;
     speedFactor: number;
-
 }
 
-const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
@@ -33,6 +32,11 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
         [triLocations, triRotations, triColors] = getAgentLocationRotationColors(simulationRef.current);
         [sqLocations, sqColors] = getFoodLocationColors(simulationRef.current);
         console.log(simulationRef.current.getFoodData());
+    }
+
+    // helper: get milliseconds between updates from speed factor
+    function getUpdateInterval() {
+        return Math.floor(1000 / speedFactor);
     }
 
     // useEffect to initialize the canvas and renderer
@@ -84,7 +88,7 @@ const WebGPUCanvas = ({ paused, step, disableStep }: WebGPUCanvasProps) => {
         // start the update loop for the cobweb grid
         const id = setInterval(() => {
             updateGrid();
-        }, 100);
+        }, getUpdateInterval());
 
         // clear the interval on unmount to prevent memory leakage
         return () => clearInterval(id);

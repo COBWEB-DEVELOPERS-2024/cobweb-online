@@ -13,7 +13,7 @@ interface NavbarProps {
     enableStep: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ paused, speedFactor, setSpeedFactor, togglePause, enableStep }: NavbarProps) => {
+const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSpeedFactor, enableStep }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
             setSpeedFactor(value[0]);

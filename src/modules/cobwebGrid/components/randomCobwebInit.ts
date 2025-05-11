@@ -1,4 +1,5 @@
 import { Simulation } from '../processing/Simulation';
+import { Direction } from '../../../shared/processing/core/Direction';
 
 function addRandomAgents(simulation: any, amount: number) {
     for (let i = 0; i < amount; i++) {
@@ -13,6 +14,17 @@ function addRandomFood(simulation: any, amount: number) {
         const x = Math.floor(Math.random() * 64);
         const y = Math.floor(Math.random() * 64);
         simulation.addFood({ x, y },  Math.floor(Math.random() * 4));
+    }
+}
+
+function directionToNumber(direction: Direction): number {
+    switch (direction.x) {
+        case -1:
+            return 3;
+        case 1:
+            return 1;
+        default:
+            return direction.y === 1 ? 2 : 0;
     }
 }
 
@@ -50,10 +62,10 @@ export function getAgentLocationRotationColors(simulation: Simulation): any {
 
     for (let i = 0; i < agents.length; i++) {
         const agent = agents[i];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        agentLocations.push([agent.position.x, agent.position.y]);
-        agentRotations.push(0);
+        if (agent.position) {
+            agentLocations.push([agent.position.x, agent.position.y]);
+            agentRotations.push(directionToNumber(agent.position.direction));
+        }
         agentColors.push(agent.type);
     }
 
