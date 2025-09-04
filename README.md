@@ -1,23 +1,22 @@
 # cobweb-online
-COBWEB is an agent-based simulation environment used by over 100 students every year for research in ecology, economics, and more. This version of COBWEB is available online and is primarily made with TypeScript, JavaScript, React, and WebGPU.
-Got it! Here's your clean and professional `README.md` for **CobwebOnline**, written in GitHub-flavored Markdown **without emojis**, and tailored to reflect that this project is both the frontend and backend combined:
+COBWEB is an agent-based simulation environment used by over 100 students every year for research in ecology, economics, and more. This version of COBWEB is available online and is primarily made with TypeScript, React, and WebGPU.
 
 
 
 ## About Cobweb Online
 
-**Cobweb Online** is a browser-based agent simulation system powered by **WebGPU**, allowing real-time, GPU-accelerated simulations and interactive visualizations. It is a modern web re-implementation of the original Java-based COBWEB simulator, now split across a JavaScript backend (modular simulation logic) and a TypeScript/React frontend (interactive interface and rendering). 
+**Cobweb Online** is a browser-based agent simulation system powered by **WebGPU**, allowing real-time, GPU-accelerated simulations and interactive visualizations. It is a modern web re-implementation of the original Java-based COBWEB simulator, now split across a WebGPU processing layer and a TypeScript/React frontend (interactive interface and rendering). 
 
 
 ## Key Features
 
 - Real-time agent-based simulation using WebGPU compute shaders
 - Visualization of agents, food, and environment using WebGPU fragment shaders
-- Modular backend for simulation logic in JavaScript
+- Modular processing layer for simulation logic in WebGPU and TypeScript
 - TypeScript-based frontend with Vite + React
 - Asexual and sexual reproduction, food consumption, energy decay, aging and death
 - Obstacles ("stones") that block movement
-- Fully in-browser, no backend server required
+- Fully static, no backend server required
 
 ---
 
@@ -31,9 +30,9 @@ Got it! Here's your clean and professional `README.md` for **CobwebOnline**, wri
 - `randomCobwebInit.ts`: Initializes the starting simulation state
 - `webgpuCobwebGrid.ts`: Sets up GPU buffers, pipelines, and drawing logic
 
-### Backend (JavaScript Modules)
+### Processing layer (WebGPU and TypeScript Modules)
 
-Located under `src/shared/processing/` and `src/modules/processing/`, the backend handles:
+Located under `src/shared/processing/` and `src/modules/processing/`, the processing layer handles:
 
 - `ComplexAgent.js`, `AgentSpawner.js`, `ComplexEnvironment.js`: Core simulation logic
 - `broadcast/`, `ai/`, `gravity/`, `foodWeb/`: Plugin architecture and extensions
@@ -88,18 +87,18 @@ src/
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (v20+ recommended)
-- [pnpm](https://pnpm.io/) (or `npm` if preferred)
+- [npm](https://npmjs.com/)
 
 ### Install Dependencies
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### Start the Dev Server (Vite)
 
 ```bash
-pnpm run dev
+npm run dev
 ```
 
 You’ll see:
@@ -110,16 +109,16 @@ You’ll see:
   ➜  Local:   http://localhost:5173/
 ```
 
-### Build for Production
+### Build for Production (please do this before merging your branch go main)
 
 ```bash
-pnpm run build
+npm run build
 ```
 
 Preview the production build:
 
 ```bash
-pnpm run preview
+npm run preview
 ```
 
 ---
