@@ -214,7 +214,7 @@ export async function initCobwebGrid(
             sqLocations ?? [],
             sqColors ?? []
         );
-        device.queue.writeBuffer(shapeBuffer, 0, shapeData);
+        device.queue.writeBuffer(shapeBuffer, 0, new Float32Array(shapeData));
         render(shapeData.length);
     }
 
