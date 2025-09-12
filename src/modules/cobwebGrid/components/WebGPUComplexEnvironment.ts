@@ -119,6 +119,24 @@ export class WebGPUComplexEnvironment extends Environment {
         this.food.push({ x: loc.x, y: loc.y, foodType: type });
     }
 
+    override addStone(loc: Location): void {
+        if (this.hasStone(loc) || this.hasAgent(loc) || this.hasDrop(loc)) 
+            return;
+        super.addStone(loc);
+        this.stones.push({ x: loc.x, y: loc.y });
+        this.food.push({ x: loc.x, y: loc.y, foodType: 3 });
+        this.uploadStonesToGPU();
+        this.uploadFoodToGPU();
+    }
+
+    removeStone(loc: Location): void {
+        super.removeStone(loc);
+        this.stones = this.stones.filter(s => !(s.x === loc.x && s.y === loc.y));
+        this.food = this.food.filter(f => !(f.x === loc.x && f.y === loc.y && f.foodType === 3));
+        this.uploadStonesToGPU();
+        this.uploadFoodToGPU();
+    }
+
     async uploadAgentsToGPU() {
         const staging = new Uint32Array(this.maxAgents * 10);
         for (let i = 0; i < this.agents.length; i++) {

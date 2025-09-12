@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
 import {Simulation} from '../processing/Simulation';
 import {
@@ -17,6 +17,7 @@ interface WebGPUCanvasProps {
 
 const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
+    const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
     const simulationRef = useRef<Simulation | null>(null);
@@ -58,6 +59,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
                     sqColors
                 ).then(renderer => {
                     rendererRef.current = renderer;
+                    setReady(true); // mark as ready to enable interactions
                 }).catch(console.error);
             });
         }
@@ -105,6 +107,75 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         // set step to false to prevent subsequent updates
         disableStep();
     }, [step]);
+
+    function clientToCanvasXY(ev: MouseEvent, canvas: HTMLCanvasElement) {
+        const rect = canvas.getBoundingClientRect();
+        const cssX = ev.clientX - rect.left;
+        const cssY = ev.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return { x: cssX * scaleX, y: cssY * scaleY };
+    }
+
+    function canvasXYToCell(x: number, y: number, canvas: HTMLCanvasElement) {
+        const GRID = 64; // assuming a 64x64 grid
+        const cellW = canvas.width / GRID;
+        const cellH = canvas.height / GRID;
+        const i = Math.max(0, Math.min(GRID - 1, Math.floor(x / cellW)));
+        const j = Math.max(0, Math.min(GRID - 1, Math.floor(y / cellH)));
+        return { i, j };
+    }
+
+    useEffect(() => {
+        if (!ready) return;
+        const canvas = canvasRef.current;
+        const sim = simulationRef.current;
+        if (!canvas || !sim) return;
+
+    let drawing = false;
+
+    const refresh = () => {
+        updateRenderingData();
+        rendererRef.current?.updateShapes(
+        triLocations, triRotations, triColors, sqLocations, sqColors
+        );
+    };
+
+    const placeRockEvt = (ev: MouseEvent) => {
+        const { x, y } = clientToCanvasXY(ev, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+        sim.addRock(i, j);
+        refresh();
+    };
+
+    const onMouseDown = (ev: MouseEvent) => { drawing = true; placeRockEvt(ev); };
+    const onMouseMove = (ev: MouseEvent) => { if (drawing) placeRockEvt(ev); };
+    const onMouseUp = () => { drawing = false; };
+    const onMouseLeave = () => { drawing = false; };
+
+    const onContextMenu = (ev: MouseEvent) => {
+        ev.preventDefault();
+        const { x, y } = clientToCanvasXY(ev, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+        sim.removeRock(i, j);
+        refresh();
+    };
+
+    canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("mouseleave", onMouseLeave);
+    canvas.addEventListener("contextmenu", onContextMenu);
+
+    return () => {
+        canvas.removeEventListener("mousedown", onMouseDown);
+        canvas.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+        canvas.removeEventListener("mouseleave", onMouseLeave);
+        canvas.removeEventListener("contextmenu", onContextMenu);
+    };
+    }, [ready]);
+
 
     return (
         <div className="flex justify-center items-center flex-grow">

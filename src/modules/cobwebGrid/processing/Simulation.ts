@@ -30,6 +30,18 @@ export class Simulation {
         this.environment.addFood(location, type);
     }
 
+    addRock(i: number, j: number): void {
+        const loc = new Location(i, j);
+        this.environment.addStone(loc);
+    }
+    
+    removeRock(i: number, j: number): void {
+        const loc = new Location(i, j);
+        (this.environment as any).removeStone
+      ? (this.environment as any).removeStone(loc)
+      : (this.environment as any).removeStoneAt?.(i, j);
+    }
+
     async uploadAgents(): Promise<void> {
         await this.environment.uploadAgentsToGPU();
     }
