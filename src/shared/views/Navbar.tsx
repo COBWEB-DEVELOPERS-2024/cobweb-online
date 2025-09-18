@@ -11,9 +11,11 @@ interface NavbarProps {
     speedFactor: number;
     setSpeedFactor: (factor: number) => void;
     enableStep: () => void;
+    foodMode: boolean;
+    toggleFoodMode: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSpeedFactor, enableStep }: NavbarProps) => {
+const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSpeedFactor, enableStep, foodMode, toggleFoodMode }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
             setSpeedFactor(value[0]);
@@ -56,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSp
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
-                <EditNavButton />
+                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} />
                 <ViewNavButton />
                 <SimulationNavButton />
             </div>

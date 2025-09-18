@@ -1,8 +1,18 @@
 import React from 'react';
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@heroui/react";
 
-const EditNavButton: React.FC = () => {
+interface EditNavButtonProps {
+    foodMode: boolean;
+    toggleFoodMode: () => void;
+}
+
+const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode }) => {
     const dropdownItems = [
+        {
+            key: 'toggleFoodMode',
+            label: foodMode ? 'Exit Food Mode' : 'Add Food Mode',
+            action: toggleFoodMode,
+        },
         {
             key: 'togglePlaceStonesMode',
             label: 'Toggle Place Stones Mode',
