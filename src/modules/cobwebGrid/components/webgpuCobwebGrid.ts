@@ -6,7 +6,8 @@ export interface WebGPURenderer {
         triRotations: number[],
         triColors: number[],
         sqLocations: number[][],
-        sqColors: number[]
+        sqColors: number[],
+        rockLocations : number[][]
     ): void;
 }
 
@@ -40,7 +41,8 @@ export async function initCobwebGrid(
     defaultTriRotations: number[],
     defaultTriColors: number[],
     defaultSqLocations: number[][],
-    defaultSqColors: number[]
+    defaultSqColors: number[],
+    defaultRockLocations : number[][]
 ): Promise<WebGPURenderer> {
     if (!navigator.gpu) throw new Error('WebGPU not supported');
     const adapter = await navigator.gpu.requestAdapter();
@@ -121,7 +123,8 @@ export async function initCobwebGrid(
         triRotations: number[],
         triColors: number[],
         sqLocations: number[][],
-        sqColors: number[]
+        sqColors: number[],
+        rockLocations : number[][]
     ): Float32Array {
         // the shapes list that we will build up and then return
         const shapes: number[] = [];
@@ -180,6 +183,29 @@ export async function initCobwebGrid(
             );
         }
 
+        for (let i = 0; i < rockLocations.length; i++) {
+            const [cx, cy] = rockLocations[i];
+            const [aX, aY] = toNDC(cx,     cy + 1);
+            const [bX, bY] = toNDC(cx + 1, cy + 1);
+            const [cX, cY] = toNDC(cx + 1, cy);
+            const [dX, dY] = toNDC(cx,     cy);
+            // gray color
+            const r = 0, g = 0, b = 0;
+            // triangle 1
+            shapes.push(
+                aX, aY, r, g, b,
+                bX, bY, r, g, b,
+                cX, cY, r, g, b
+            );
+            // triangle 2
+            shapes.push(
+                aX, aY, r, g, b,
+                cX, cY, r, g, b,
+                dX, dY, r, g, b
+            );
+        }
+
+
         return new Float32Array(shapes);
     }
 
@@ -213,14 +239,16 @@ export async function initCobwebGrid(
         triRotations: number[] = [],
         triColors: number[] = [],
         sqLocations: number[][] = [],
-        sqColors: number[] = []
+        sqColors: number[] = [],
+        rockLocations : number[][] = []
     ) {
         const shapeData = buildShapeData(
             triLocations ?? [],
             triRotations ?? [],
             triColors ?? [],
             sqLocations ?? [],
-            sqColors ?? []
+            sqColors ?? [],
+            rockLocations ?? []
         );
         device.queue.writeBuffer(shapeBuffer, 0, shapeData.buffer);
         render(shapeData.length);
@@ -232,7 +260,8 @@ export async function initCobwebGrid(
         defaultTriRotations,
         defaultTriColors,
         defaultSqLocations,
-        defaultSqColors
+        defaultSqColors,
+        defaultRockLocations
     );
 
     return { updateShapes };

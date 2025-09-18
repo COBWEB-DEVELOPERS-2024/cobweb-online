@@ -72,6 +72,18 @@ export function getAgentLocationRotationColors(simulation: Simulation): any {
     return [agentLocations, agentRotations, agentColors];
 }
 
+export function getRockLocations(simulation: Simulation): number[][] {
+  const stones = (simulation as any).getStoneData?.() ?? [];
+  const rockLocations: number[][] = [];
+  for (let i = 0; i < stones.length; i++) {
+    const s = stones[i];
+    if (s.x >= 0 && s.y >= 0 && s.x < 64 && s.y < 64) {
+      rockLocations.push([s.x, s.y]);
+    }
+  }
+  return rockLocations;
+}
+
 export function getFoodLocationColors(simulation: Simulation): any {
     const food = simulation.getFoodData();
     const foodLocations: number[][] = [];
