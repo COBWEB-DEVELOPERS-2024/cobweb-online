@@ -59,6 +59,10 @@ export class Simulation {
         return this.environment.getFood();
     }
 
+    getStoneData(): { x:number; y:number }[] {
+        return (this.environment as any).getStones();
+    }
+    
     getTime(): number {
         return this.time;
     }

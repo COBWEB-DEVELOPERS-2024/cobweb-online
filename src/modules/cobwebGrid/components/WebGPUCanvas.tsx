@@ -5,7 +5,8 @@ import {
     randomCobwebInit,
     stepCobwebSimulation,
     getAgentLocationRotationColors,
-    getFoodLocationColors
+    getFoodLocationColors,
+    getRockLocations
 } from "./randomCobwebInit";
 
 interface WebGPUCanvasProps {
@@ -21,6 +22,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
     const simulationRef = useRef<Simulation | null>(null);
+    const rockRef = useRef<number[][]>([]); // to track placed rocks
     var triLocations: number[][] = [];
     var triRotations: number[] = [];
     var triColors: number[] = [];
@@ -33,6 +35,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         [triLocations, triRotations, triColors] = getAgentLocationRotationColors(simulationRef.current);
         [sqLocations, sqColors] = getFoodLocationColors(simulationRef.current);
         console.log(simulationRef.current.getFoodData());
+        rockRef.current = getRockLocations(simulationRef.current);
     }
 
     // helper: get milliseconds between updates from speed factor
@@ -56,7 +59,8 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
                     triRotations,
                     triColors,
                     sqLocations,
-                    sqColors
+                    sqColors,
+                    rockRef.current
                 ).then(renderer => {
                     rendererRef.current = renderer;
                     setReady(true); // mark as ready to enable interactions
@@ -76,7 +80,8 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
                     triRotations,
                     triColors,
                     sqLocations,
-                    sqColors
+                    sqColors,
+                    rockRef.current
                 );
             }).catch(console.error);
         }
@@ -137,7 +142,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
     const refresh = () => {
         updateRenderingData();
         rendererRef.current?.updateShapes(
-        triLocations, triRotations, triColors, sqLocations, sqColors
+        triLocations, triRotations, triColors, sqLocations, sqColors,rockRef.current
         );
     };
 
