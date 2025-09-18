@@ -175,13 +175,15 @@ export async function initCobwebGrid(
             );
         }
 
+        // build the rocks: black squares (2 triangles each)
         for (let i = 0; i < rockLocations.length; i++) {
             const [cx, cy] = rockLocations[i];
-            const [aX, aY] = toNDC(cx,     cy + 1);
+            const [aX, aY] = toNDC(cx, cy + 1);
             const [bX, bY] = toNDC(cx + 1, cy + 1);
             const [cX, cY] = toNDC(cx + 1, cy);
-            const [dX, dY] = toNDC(cx,     cy);
-            // gray color
+            const [dX, dY] = toNDC(cx, cy);
+
+            // black color
             const r = 0, g = 0, b = 0;
             // triangle 1
             shapes.push(
@@ -196,7 +198,6 @@ export async function initCobwebGrid(
                 dX, dY, r, g, b
             );
         }
-
 
         return new Float32Array(shapes);
     }
