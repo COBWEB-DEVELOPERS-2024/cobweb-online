@@ -17,8 +17,8 @@ const App: React.FC = () => {
 
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">
-			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} foodMode={foodMode} toggleFoodMode={toggleFoodMode} />
-			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} foodMode={foodMode} selectedFoodColor={selectedFoodColor} setSelectedFoodColor={setSelectedFoodColor} />
+			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} foodMode={foodMode} toggleFoodMode={toggleFoodMode} selectedFoodColor={selectedFoodColor} setSelectedFoodColor={setSelectedFoodColor}/>
+			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} foodMode={foodMode} selectedFoodColor={selectedFoodColor} />
 		</div>
 	);
 };

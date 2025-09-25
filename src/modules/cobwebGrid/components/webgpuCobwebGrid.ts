@@ -18,6 +18,14 @@ const colors = [
     [0,0.8,0],  // green
 ];
 
+// color mapping
+/*
+    0 = red
+    1 = blue
+    2 = yellow
+    3 = green
+*/
+
 // define the triangle rotations
 const rotations = [
     [[0, 1], [1, 1], [0.5, 0]], // up

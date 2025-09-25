@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
 import {Simulation} from '../processing/Simulation';
 import { Location } from '../../../shared/processing/core/Location';
-import FoodColorPicker from '../../../shared/components/FoodColorPicker';
 import {
     randomCobwebInit,
     stepCobwebSimulation,
@@ -17,10 +16,9 @@ interface WebGPUCanvasProps {
     speedFactor: number;
     foodMode: boolean;
     selectedFoodColor: number;
-    setSelectedFoodColor: (color: number) => void;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor, setSelectedFoodColor }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
@@ -62,6 +60,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
     // helper: handle mouse click for food placement
     function handleCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
         if (!foodMode || !simulationRef.current || !canvasRef.current) return;
+        // ensure that foodmode is enabled, the simulationref is set, the canvasref is also set
         
         const { x, y } = mouseToGridCoordinates(event.clientX, event.clientY, canvasRef.current);
         
@@ -152,26 +151,12 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
     }, [step]);
 
     return (
-        <div className="flex justify-center items-center flex-grow gap-4">
-            <div className="relative">
-                <canvas
-                    ref={canvasRef}
-                    className={`w-[85vh] h-[85vh] aspect-square border-3 shadow-xl cursor-pointer ${
-                        foodMode ? 'border-yellow-500 border-4' : 'border-emerald-600'
-                    }`}
-                    onClick={handleCanvasClick}
-                />
-
-            </div>
-            {foodMode && (
-                <div className="flex-shrink-0">
-                    <FoodColorPicker 
-                        selectedFoodColor={selectedFoodColor}
-                        setSelectedFoodColor={setSelectedFoodColor}
-                        foodMode={foodMode}
-                    />
-                </div>
-            )}
+        <div className="flex justify-center items-center flex-grow">
+            <canvas
+                ref={canvasRef}
+                className="w-[85vh] h-[85vh] aspect-square border-3 border-emerald-600 shadow-xl"
+                onClick={handleCanvasClick}
+            />
         </div>
     );
 };

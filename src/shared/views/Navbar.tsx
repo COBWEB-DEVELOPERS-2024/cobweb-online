@@ -1,9 +1,10 @@
 import React from 'react';
-import {Button, Slider } from '@heroui/react';
+import { Button, Slider } from '@heroui/react';
 import FileNavButton from '../components/FileNavButton';
 import EditNavButton from '../components/EditNavButton';
 import ViewNavButton from '../components/ViewNavButton';
 import SimulationNavButton from '../components/SimulationNavButton';
+import FoodModeNavButton from '../components/FoodModeNavButton';
 
 interface NavbarProps {
     paused: boolean;
@@ -13,9 +14,21 @@ interface NavbarProps {
     enableStep: () => void;
     foodMode: boolean;
     toggleFoodMode: () => void;
+    selectedFoodColor: number;
+    setSelectedFoodColor: (color: number) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSpeedFactor, enableStep, foodMode, toggleFoodMode }: NavbarProps) => {
+const Navbar: React.FC<NavbarProps> = ({ 
+    paused, 
+    togglePause, 
+    speedFactor, 
+    setSpeedFactor, 
+    enableStep, 
+    foodMode, 
+    toggleFoodMode,
+    selectedFoodColor,
+    setSelectedFoodColor
+ }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
             setSpeedFactor(value[0]);
@@ -61,6 +74,14 @@ const Navbar: React.FC<NavbarProps> = ({ paused, togglePause, speedFactor, setSp
                 <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} />
                 <ViewNavButton />
                 <SimulationNavButton />
+                {foodMode && (
+                    <FoodModeNavButton 
+                        foodMode={foodMode}
+                        selectedFoodColor={selectedFoodColor}
+                        setSelectedFoodColor={setSelectedFoodColor} />
+                )
+                }
+                {/* only show the food color drop down when food mode is active*/}
             </div>
         </nav>
     );
