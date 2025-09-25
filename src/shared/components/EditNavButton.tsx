@@ -10,7 +10,7 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode 
     const dropdownItems = [
         {
             key: 'toggleFoodMode',
-            label: foodMode ? 'Exit Food Mode' : 'Add Food Mode',
+            label: foodMode ? 'Exit Food Mode' : 'Toggle Add Food Mode',
             action: toggleFoodMode,
         },
         {
