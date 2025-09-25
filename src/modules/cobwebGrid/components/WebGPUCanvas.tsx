@@ -57,8 +57,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         return { x: Math.max(0, Math.min(63, gridX)), y: Math.max(0, Math.min(63, gridY)) };
     }
 
-    // helper: handle mouse click for food placement
-    function handleCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
+    function handleFoodPlacement(event: React.MouseEvent<HTMLCanvasElement>) {
         if (!foodMode || !simulationRef.current || !canvasRef.current) return;
         // ensure that foodmode is enabled, the simulationref is set, the canvasref is also set
         
@@ -81,6 +80,14 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         
         // debug log
         console.log(`Added food at grid position (${x}, ${y})`);
+    }
+
+    // helper: handle mouse click for food placement
+    function handleCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
+        if (foodMode) {
+            handleFoodPlacement(event);
+        }
+        // else, could handle other click interactions here
     }
 
     // useEffect to initialize the canvas and renderer
