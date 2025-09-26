@@ -14,9 +14,10 @@ interface WebGPUCanvasProps {
     step: boolean;
     disableStep: () => void;
     speedFactor: number;
+    placeStonesMode: boolean;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, speedFactor, step, disableStep,placeStonesMode}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -153,13 +154,17 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         refresh();
     };
 
-    const onMouseDown = (ev: MouseEvent) => { drawing = true; placeRockEvt(ev); };
+    const onMouseDown = (ev: MouseEvent) => { 
+        if(!placeStonesMode) return;  //only place rocks if in place stones mode
+        drawing = true; 
+        placeRockEvt(ev); };
     const onMouseMove = (ev: MouseEvent) => { if (drawing) placeRockEvt(ev); };
     const onMouseUp = () => { drawing = false; };
     const onMouseLeave = () => { drawing = false; };
 
     const onContextMenu = (ev: MouseEvent) => {
         ev.preventDefault();
+        if(!placeStonesMode) return;    //only remove rocks if in place stones mode
         const { x, y } = clientToCanvasXY(ev, canvas);
         const { i, j } = canvasXYToCell(x, y, canvas);
         sim.removeRock(i, j);
@@ -179,7 +184,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
         canvas.removeEventListener("mouseleave", onMouseLeave);
         canvas.removeEventListener("contextmenu", onContextMenu);
     };
-    }, [ready]);
+    }, [ready,placeStonesMode]);
 
 
     return (

@@ -1,12 +1,18 @@
 import React from 'react';
 import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@heroui/react";
 
-const EditNavButton: React.FC = () => {
+// Props for the EditNavButton component
+interface EditNavButtonProps {
+    placeStonesMode: boolean;
+    onTogglePlaceStonesMode: () => void;  
+}
+
+const EditNavButton: React.FC<EditNavButtonProps> = ({placeStonesMode,onTogglePlaceStonesMode}) => {
     const dropdownItems = [
         {
             key: 'togglePlaceStonesMode',
-            label: 'Toggle Place Stones Mode',
-            action: () => {console.log("Edit nav clicked: placeStones");},
+            label: placeStonesMode ? 'Disable Place Stones Mode' : 'Enable Place Stones Mode', // Dynamic label based on state
+            action: () => {onTogglePlaceStonesMode(); console.log("File nav clicked: togglePlaceStonesMode");} 
         },
         {
             key: 'removeAllStones',
