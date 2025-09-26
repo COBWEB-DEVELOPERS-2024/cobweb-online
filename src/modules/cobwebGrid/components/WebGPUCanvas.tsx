@@ -17,9 +17,10 @@ interface WebGPUCanvasProps {
     speedFactor: number;
     foodMode: boolean;
     selectedFoodColor: number;
+    placeStonesMode: boolean;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor,placeStonesMode}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -78,7 +79,8 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
                 triRotations,
                 triColors,
                 sqLocations,
-                sqColors
+                sqColors,
+                rockRef.current
             );
         }
         
@@ -204,13 +206,17 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         refresh();
     };
 
-    const onMouseDown = (ev: MouseEvent) => { drawing = true; placeRockEvt(ev); };
+    const onMouseDown = (ev: MouseEvent) => { 
+        if(!placeStonesMode) return;  //only place rocks if in place stones mode
+        drawing = true; 
+        placeRockEvt(ev); };
     const onMouseMove = (ev: MouseEvent) => { if (drawing) placeRockEvt(ev); };
     const onMouseUp = () => { drawing = false; };
     const onMouseLeave = () => { drawing = false; };
 
     const onContextMenu = (ev: MouseEvent) => {
         ev.preventDefault();
+        if(!placeStonesMode) return;    //only remove rocks if in place stones mode
         const { x, y } = clientToCanvasXY(ev, canvas);
         const { i, j } = canvasXYToCell(x, y, canvas);
         sim.removeRock(i, j);
@@ -230,7 +236,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         canvas.removeEventListener("mouseleave", onMouseLeave);
         canvas.removeEventListener("contextmenu", onContextMenu);
     };
-    }, [ready]);
+    }, [ready,placeStonesMode]);
 
 
     return (

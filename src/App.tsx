@@ -10,6 +10,9 @@ const App: React.FC = () => {
 	const [selectedFoodColor, setSelectedFoodColor] = React.useState(0);
 	// default food color is red (index 0)
 
+	const [placeStonesMode, setPlaceStonesMode] = React.useState(false);  
+	const togglePlaceStonesMode = () => setPlaceStonesMode(m => !m);
+
 	const togglePause = () => setPaused(!paused);
 	const enableStep = () => setStep(true);
 	const disableStep = () => setStep(false);
@@ -17,8 +20,8 @@ const App: React.FC = () => {
 
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">
-			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} foodMode={foodMode} toggleFoodMode={toggleFoodMode} selectedFoodColor={selectedFoodColor} setSelectedFoodColor={setSelectedFoodColor}/>
-			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} foodMode={foodMode} selectedFoodColor={selectedFoodColor} />
+			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} foodMode={foodMode} toggleFoodMode={toggleFoodMode} selectedFoodColor={selectedFoodColor} setSelectedFoodColor={setSelectedFoodColor} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode = {togglePlaceStonesMode}/>
+			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} foodMode={foodMode} selectedFoodColor={selectedFoodColor} placeStonesMode = {placeStonesMode}/>
 		</div>
 	);
 };
