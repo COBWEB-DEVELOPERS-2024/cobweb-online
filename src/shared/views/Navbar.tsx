@@ -16,6 +16,8 @@ interface NavbarProps {
     toggleFoodMode: () => void;
     selectedFoodColor: number;
     setSelectedFoodColor: (color: number) => void;
+    placeStonesMode: boolean;  
+    onTogglePlaceStonesMode: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -27,7 +29,9 @@ const Navbar: React.FC<NavbarProps> = ({
     foodMode, 
     toggleFoodMode,
     selectedFoodColor,
-    setSelectedFoodColor
+    setSelectedFoodColor,
+    placeStonesMode,
+    onTogglePlaceStonesMode
  }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
@@ -71,7 +75,7 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
-                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} />
+                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} placeStonesMode = {placeStonesMode} onTogglePlaceStonesMode={onTogglePlaceStonesMode}/>
                 <ViewNavButton />
                 <SimulationNavButton />
                 {foodMode && (

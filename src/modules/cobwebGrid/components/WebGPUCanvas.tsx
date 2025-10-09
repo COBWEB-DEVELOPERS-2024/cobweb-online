@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
 import {Simulation} from '../processing/Simulation';
 import { Location } from '../../../shared/processing/core/Location';
@@ -6,7 +6,8 @@ import {
     randomCobwebInit,
     stepCobwebSimulation,
     getAgentLocationRotationColors,
-    getFoodLocationColors
+    getFoodLocationColors,
+    getRockLocations
 } from "./randomCobwebInit";
 
 interface WebGPUCanvasProps {
@@ -16,13 +17,16 @@ interface WebGPUCanvasProps {
     speedFactor: number;
     foodMode: boolean;
     selectedFoodColor: number;
+    placeStonesMode: boolean;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor,placeStonesMode}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
+    const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
     const simulationRef = useRef<Simulation | null>(null);
+    const rockRef = useRef<number[][]>([]); // to track placed rocks
     var triLocations: number[][] = [];
     var triRotations: number[] = [];
     var triColors: number[] = [];
@@ -35,6 +39,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         [triLocations, triRotations, triColors] = getAgentLocationRotationColors(simulationRef.current);
         [sqLocations, sqColors] = getFoodLocationColors(simulationRef.current);
         console.log(simulationRef.current.getFoodData());
+        rockRef.current = getRockLocations(simulationRef.current);
     }
 
     // helper: get milliseconds between updates from speed factor
@@ -74,7 +79,8 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
                 triRotations,
                 triColors,
                 sqLocations,
-                sqColors
+                sqColors,
+                rockRef.current
             );
         }
         
@@ -106,9 +112,11 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
                     triRotations,
                     triColors,
                     sqLocations,
-                    sqColors
+                    sqColors,
+                    rockRef.current
                 ).then(renderer => {
                     rendererRef.current = renderer;
+                    setReady(true); // mark as ready to enable interactions
                 }).catch(console.error);
             });
         }
@@ -125,7 +133,8 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
                     triRotations,
                     triColors,
                     sqLocations,
-                    sqColors
+                    sqColors,
+                    rockRef.current
                 );
             }).catch(console.error);
         }
@@ -156,6 +165,79 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         // set step to false to prevent subsequent updates
         disableStep();
     }, [step]);
+
+    function clientToCanvasXY(ev: MouseEvent, canvas: HTMLCanvasElement) {
+        const rect = canvas.getBoundingClientRect();
+        const cssX = ev.clientX - rect.left;
+        const cssY = ev.clientY - rect.top;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return { x: cssX * scaleX, y: cssY * scaleY };
+    }
+
+    function canvasXYToCell(x: number, y: number, canvas: HTMLCanvasElement) {
+        const GRID = 64; // assuming a 64x64 grid
+        const cellW = canvas.width / GRID;
+        const cellH = canvas.height / GRID;
+        const i = Math.max(0, Math.min(GRID - 1, Math.floor(x / cellW)));
+        const j = Math.max(0, Math.min(GRID - 1, Math.floor(y / cellH)));
+        return { i, j };
+    }
+
+    useEffect(() => {
+        if (!ready) return;
+        const canvas = canvasRef.current;
+        const sim = simulationRef.current;
+        if (!canvas || !sim) return;
+
+    let drawing = false;
+
+    const refresh = () => {
+        updateRenderingData();
+        rendererRef.current?.updateShapes(
+        triLocations, triRotations, triColors, sqLocations, sqColors,rockRef.current
+        );
+    };
+
+    const placeRockEvt = (ev: MouseEvent) => {
+        const { x, y } = clientToCanvasXY(ev, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+        sim.addRock(i, j);
+        refresh();
+    };
+
+    const onMouseDown = (ev: MouseEvent) => { 
+        if(!placeStonesMode) return;  //only place rocks if in place stones mode
+        drawing = true; 
+        placeRockEvt(ev); };
+    const onMouseMove = (ev: MouseEvent) => { if (drawing) placeRockEvt(ev); };
+    const onMouseUp = () => { drawing = false; };
+    const onMouseLeave = () => { drawing = false; };
+
+    const onContextMenu = (ev: MouseEvent) => {
+        ev.preventDefault();
+        if(!placeStonesMode) return;    //only remove rocks if in place stones mode
+        const { x, y } = clientToCanvasXY(ev, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+        sim.removeRock(i, j);
+        refresh();
+    };
+
+    canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    canvas.addEventListener("mouseleave", onMouseLeave);
+    canvas.addEventListener("contextmenu", onContextMenu);
+
+    return () => {
+        canvas.removeEventListener("mousedown", onMouseDown);
+        canvas.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+        canvas.removeEventListener("mouseleave", onMouseLeave);
+        canvas.removeEventListener("contextmenu", onContextMenu);
+    };
+    }, [ready,placeStonesMode]);
+
 
     return (
         <div className="flex justify-center items-center flex-grow">
