@@ -292,6 +292,28 @@ export class WebGPUComplexEnvironment extends Environment {
         this.device.queue.writeBuffer(this.stoneBuffer!, 0, staging.buffer);
     }
 
+    // Ensure clearFood clears both the flag bits and the local/GPU-backed food arrays
+    override clearFood(): void {
+        // clear flag bits using base implementation
+        super.clearFood();
+
+        // clear local cache and uploaded count
+        this.food = [];
+        this.uploadedFoodCount = 0;
+
+        // zero the GPU food buffer so subsequent readbacks see no food
+        try {
+            if (this.foodBuffer) {
+                const zeroed = new Uint32Array(this.maxFood * 3);
+                this.device.queue.writeBuffer(this.foodBuffer, 0, zeroed.buffer);
+            }
+        } catch (e) {
+            console.warn('Failed to zero foodBuffer during clearFood:', e);
+        }
+
+        console.log("Cleared all food from environment.");
+    }
+
     async downloadFoodFromGPU() {
         const readBuffer = this.device.createBuffer({
             size: this.maxFood * 3 * 4,

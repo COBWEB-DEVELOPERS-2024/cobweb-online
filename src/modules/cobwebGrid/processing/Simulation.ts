@@ -30,6 +30,41 @@ export class Simulation {
         this.environment.addFood(location, type);
     }
 
+    removeAgent(location: Location): void {
+        this.environment.removeAgent(location);
+    }
+
+    removeFood(location: Location): void {
+        this.environment.removeFood(location);
+    }
+
+    removeWaste(location: Location): void {
+        this.environment.removeDrop(location);
+    }
+
+    clearAgents(): void {
+        this.environment.clearAgents();
+    }
+
+    clearFood(): void {
+        this.environment.clearFood();
+    }
+
+    clearStones(): void {
+        this.environment.clearStones();
+    }
+
+    clearWaste(): void {
+        this.environment.clearDrops();
+    }
+
+    clearAll(): void {
+        this.clearAgents();
+        this.clearFood();
+        this.clearStones();
+        this.clearWaste();
+    }
+
     async uploadAgents(): Promise<void> {
         await this.environment.uploadAgentsToGPU();
     }

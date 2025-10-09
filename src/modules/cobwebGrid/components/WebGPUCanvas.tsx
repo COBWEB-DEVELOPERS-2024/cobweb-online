@@ -16,9 +16,21 @@ interface WebGPUCanvasProps {
     speedFactor: number;
     foodMode: boolean;
     selectedFoodColor: number;
+    removeAllFood: boolean;
+    setRemoveAllFood: (b: boolean) => void;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ 
+    paused, 
+    speedFactor, 
+    step, 
+    disableStep, 
+    foodMode, 
+    selectedFoodColor,
+    removeAllFood,
+    setRemoveAllFood
+    // TODO add the rest of the remove functions
+}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
@@ -97,6 +109,60 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         }
         // else, could handle other click interactions here
     }
+
+    // useEffect to clear the grid when removeAllFood is toggled
+    // Run only when `removeAllFood` changes to avoid running on every render
+    useEffect(() => {
+        if (!simulationRef.current) return;
+
+        const sim = simulationRef.current;
+
+        if (!removeAllFood) return;
+
+        console.log("removeAllFood triggered: clearing all food from the grid");
+
+        // Diagnostic: log counts before clearing
+        try {
+            console.log('Agents before clear:', sim.getAgentData().length);
+            console.log('Food before clear:', sim.getFoodData().length);
+        } catch (e) {
+            console.warn('Could not read sim data before clear:', e);
+        }
+
+        // clear only food (do not touch agents/stones/waste)
+        sim.clearFood();
+
+        // Diagnostic: log counts after clearing
+        try {
+            console.log('Agents after clear:', sim.getAgentData().length);
+            console.log('Food after clear:', sim.getFoodData().length);
+        } catch (e) {
+            console.warn('Could not read sim data after clear:', e);
+        }
+
+        // refresh rendering data and push to GPU renderer
+        updateRenderingData();
+
+        if (rendererRef.current) {
+            rendererRef.current.updateShapes(
+                triLocations,
+                triRotations,
+                triColors,
+                sqLocations,
+                sqColors
+            );
+        }
+
+        // reset the flag in parent
+        try {
+            setRemoveAllFood(false);
+        } catch (e) {
+            // setRemoveAllFood should be the state setter from the parent;
+            // if not, just log the error rather than throwing
+            console.error('Failed to reset removeAllFood flag:', e);
+        }
+
+    }, [removeAllFood]);
 
     // useEffect to initialize the canvas and renderer
     useEffect(() => {

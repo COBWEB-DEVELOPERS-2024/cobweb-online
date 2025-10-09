@@ -4,9 +4,15 @@ import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@he
 interface EditNavButtonProps {
     foodMode: boolean;
     toggleFoodMode: () => void;
+    removeAllFood: boolean;
+    setRemoveAllFood: (b: boolean) => void;
 }
 
-const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode }) => {
+const EditNavButton: React.FC<EditNavButtonProps> = ({ 
+    foodMode, 
+    toggleFoodMode, 
+    setRemoveAllFood
+}) => {
     const dropdownItems = [
         {
             key: 'toggleFoodMode',
@@ -21,27 +27,34 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode 
         {
             key: 'removeAllStones',
             label: 'Remove All Stones',
-            action: () => {console.log("File nav clicked: removeAllStones");},
+            action: () => {
+                console.log("File nav clicked: removeAllStones");
+            },
         },
         {
             key: 'removeAllFood',
             label: 'Remove All Food',
-            action: () => {console.log("File nav clicked: removeAllFood");},
+            action: () => {
+                setRemoveAllFood(true);
+                console.log("File nav clicked: removeAllFood");},
         },
         {
             key: 'removeAllAgents',
             label: 'Remove All Agents',
-            action: () => {console.log("File nav clicked: removeAllAgents");},
+            action: () => {
+                console.log("File nav clicked: removeAllAgents");},
         },
         {
             key: 'removeAllWaste',
             label: 'Remove All Waste',
-            action: () => {console.log("File nav clicked: removeAllWaste");},
+            action: () => {
+                console.log("File nav clicked: removeAllWaste");},
         },
         {
             key: 'removeAll',
             label: 'Remove All',
-            action: () => {console.log("File nav clicked: removeAll");},
+            action: () => {
+                console.log("File nav clicked: removeAll");},
         },
     ];
 

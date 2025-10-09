@@ -144,6 +144,13 @@ export class Environment extends Updatable {
 
     clearFood(): void {
         this.clearFlag(Environment.FLAG_FOOD);
+
+        // reset food types, since
+        for (let x = 0; x < this.foodTypeArray.length; x++) {
+            for (let y = 0; y < this.foodTypeArray[x].length; y++) {
+                this.foodTypeArray[x][y] = 0;
+            }
+        }
     }
 
     removeFood(location: Location): void {
