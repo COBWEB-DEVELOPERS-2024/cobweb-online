@@ -62,6 +62,14 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         // ensure that foodmode is enabled, the simulationref is set, the canvasref is also set
         
         const { x, y } = mouseToGridCoordinates(event.clientX, event.clientY, canvasRef.current);
+
+        const existingFood = simulationRef.current.getFoodData().find(food => food.x === x && food.y === y);
+        const existingAgent = simulationRef.current.getAgentData().find(agent => agent.position && agent.position.x === x && agent.position.y === y);
+
+        if (existingFood || existingAgent) {
+            console.log(`Cannot place food at (${x}, ${y}): already occupied`);
+            return; // do not place food if the location is already occupied
+        }
         
         // add food at the clicked location with selected color   
         simulationRef.current.addFood(new Location(x, y), selectedFoodColor);
