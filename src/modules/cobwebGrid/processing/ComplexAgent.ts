@@ -72,14 +72,39 @@ export class ComplexAgent extends Agent {
 
     move(newPos: LocationDirection | null): void {
         const oldPos = this.position;
-        if (oldPos && newPos) {
-            newPos = this.simulation.getAgentListener().onTryStep(this, oldPos, newPos);
+        if (oldPos && newPos && this.simulation.getAgentListener) {
+            try {
+                newPos = this.simulation.getAgentListener().onTryStep(this, oldPos, newPos);
+            } catch (e) {
+                console.debug('getAgentListener.onTryStep not available');
+            }
         }
 
-        if (oldPos) this.environment.setAgent(oldPos, null);
-        if (newPos) this.environment.setAgent(newPos, this);
+        // check if environment exists before calling setAgent
+        if (oldPos && this.environment) {
+            try {
+                this.environment.setAgent(oldPos, null);
+            } catch (e) {
+                console.debug('Error removing agent from old position:', e);
+            }
+        }
+        
+        if (newPos && this.environment) {
+            try {
+                this.environment.setAgent(newPos, this);
+            } catch (e) {
+                console.debug('Error setting agent at new position:', e);
+            }
+        }
 
-        this.simulation.getAgentListener().onStep(this, oldPos, newPos);
+        try {
+            if (this.simulation.getAgentListener) {
+                this.simulation.getAgentListener().onStep(this, oldPos, newPos);
+            }
+        } catch (e) {
+            console.debug('getAgentListener.onStep not available');
+        }
+        
         this.position = newPos;
     }
     getState<T = any>(key: string): T | undefined {
@@ -104,9 +129,17 @@ export class ComplexAgent extends Agent {
             return;
         }
 
-
-        if (!this.simulation.getAgentListener().onNextMove(this)) {
-            this.controller.controlAgent(this, this.simulation.getAgentListener());
+        try {
+            if (this.simulation.getAgentListener) {
+                const agentListener = this.simulation.getAgentListener();
+                if (!agentListener.onNextMove(this)) {
+                    if (this.controller) {
+                        this.controller.controlAgent(this, agentListener);
+                    }
+                }
+            }
+        } catch (e) {
+            console.debug('getAgentListener.onNextMove not available');
         }
 
         this.clearCommInbox();
@@ -149,20 +182,31 @@ export class ComplexAgent extends Agent {
     getAdjacentAgent(): ComplexAgent | null {
         if (!this.environment?.topology || !this.position) return null;
 
-        const dest: LocationDirection | null = this.environment.topology.getAdjacent(this.position);
-        return dest ? this.environment.getAgent(dest) as ComplexAgent : null;
+        try {
+            const dest: LocationDirection | null = this.environment.topology.getAdjacent(this.position);
+            return dest ? this.environment.getAgent(dest) as ComplexAgent : null;
+        } catch (e) {
+            console.debug('Error getting adjacent agent:', e);
+            return null;
+        }
     }
 
     canStep(dest: LocationDirection | null): boolean {
-        return !!(dest &&
-            this.environment &&
-            !this.environment.hasStone(dest) &&
-            (!this.environment.hasDrop(dest) || this.environment.getDrop(dest)?.canStep(this)) &&
-            !this.environment.hasAgent(dest));
+        if (!dest || !this.environment) return false;
+        
+        try {
+            // Use double negation to convert any undefined values to booleans
+            return !!(!this.environment.hasStone(dest) &&
+                (!this.environment.hasDrop(dest) || !!this.environment.getDrop(dest)?.canStep(this)) &&
+                !this.environment.hasAgent(dest));
+        } catch (e) {
+            console.debug('Error checking if agent can step:', e);
+            return false;
+        }
     }
 
     onStepFreeTile(dest: LocationDirection): void {
-        if (this.environment.hasFood(dest)) {
+        if (this.environment && this.environment.hasFood(dest)) {
             if (this.canEat(dest)) this.eat(dest);
         }
 
@@ -171,7 +215,14 @@ export class ComplexAgent extends Agent {
     }
 
     onStepAgentBump(other: ComplexAgent): void {
-        this.simulation.getAgentListener().onContact(this, other);
+        try {
+            if (this.simulation.getAgentListener) {
+                this.simulation.getAgentListener().onContact(this, other);
+            }
+        } catch (e) {
+            console.debug('getAgentListener.onContact not available');
+        }
+        
         this.changeEnergy(-this.params.stepAgentEnergy);
 
         if (this.canEatAgent(other)) {
@@ -189,7 +240,11 @@ export class ComplexAgent extends Agent {
     }
 
     canEat(dest: LocationDirection): boolean {
-        return this.params.foodweb.canEatFood[this.environment.getFoodType(dest)];
+        if (!this.environment || !this.params?.foodweb?.canEatFood) {
+            return false;
+        }
+        const foodType = this.environment.getFoodType(dest);
+        return !!this.params.foodweb.canEatFood[foodType];
     }
 
     canEatAgent(other: ComplexAgent): boolean {
@@ -197,6 +252,11 @@ export class ComplexAgent extends Agent {
     }
 
     eat(dest: LocationDirection): void {
+        if (!this.environment) {
+            console.debug('Cannot eat: no environment');
+            return;
+        }
+        
         const foodType = this.environment.getFoodType(dest);
         this.environment.removeFood(dest);
 
@@ -205,19 +265,51 @@ export class ComplexAgent extends Agent {
             : this.params.otherFoodEnergy;
 
         this.changeEnergy(energy);
-        this.simulation.getAgentListener().onConsumeFood(this, foodType);
+        
+        try {
+            if (this.simulation.getAgentListener) {
+                this.simulation.getAgentListener().onConsumeFood(this, foodType);
+            }
+        } catch (e) {
+            console.debug('getAgentListener.onConsumeFood not available');
+        }
     }
 
     eatAgent(other: ComplexAgent): void {
         const gain = other.getEnergy() * this.params.agentFoodEnergy;
         this.changeEnergy(gain);
-        this.simulation.getAgentListener().onConsumeAgent(this, other);
+        
+        try {
+            if (this.simulation.getAgentListener) {
+                this.simulation.getAgentListener().onConsumeAgent(this, other);
+            }
+        } catch (e) {
+            console.debug('getAgentListener.onConsumeAgent not available');
+        }
+        
         other.die();
     }
 
     die(): void {
-        this.simulation.getAgentListener().onDeath(this);
-        this.move(null);
+        try {
+            // Check if getAgentListener exists before calling it
+            if (this.simulation.getAgentListener) {
+                this.simulation.getAgentListener().onDeath(this);
+            }
+        } catch (e) {
+            // silent fail if getAgentListener doesn't exist
+            console.debug('getAgentListener not available during die()');
+        }
+        
+        // check if environment exists before calling move
+        if (this.environment) {
+            this.move(null);
+        } else {
+            // if no environment, just clear position directly
+            this.position = null;
+            console.debug('Agent died without environment reference');
+        }
+        
         this.badAgentMemory?.clear();
         this.energy = 0;
         this.alive = false;

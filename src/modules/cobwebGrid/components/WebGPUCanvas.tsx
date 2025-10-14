@@ -206,6 +206,9 @@ const WebGPUCanvas = ({
 
         // clear only stones
         sim.clearStones();
+        
+        // Clear the local rockRef array that tracks placed rocks
+        rockRef.current = [];
 
         // Diagnostic: log counts after clearing
         try {
@@ -341,6 +344,9 @@ const WebGPUCanvas = ({
 
         // clear everything
         sim.clearAll();
+        
+        // Clear the local rockRef array that tracks placed rocks
+        rockRef.current = [];
 
         // Diagnostic: log counts after clearing
         try {

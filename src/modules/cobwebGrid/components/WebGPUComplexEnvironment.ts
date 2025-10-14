@@ -310,6 +310,57 @@ export class WebGPUComplexEnvironment extends Environment {
         this.device.queue.writeBuffer(this.stoneBuffer!, 0, staging.buffer);
     }
 
+    // Ensure clearStones clears both the flag bits and the local/GPU-backed stone arrays
+    override clearStones(): void {
+        // clear local cache of stones
+        this.stones = [];
+        // clear flag bits using base implementation
+        super.clearStones();
+
+        // zero the GPU stone buffer so subsequent readbacks see no stones
+        try {
+            if (this.stoneBuffer) {
+                const zeroed = new Uint32Array(this.maxStones * 2);
+                this.device.queue.writeBuffer(this.stoneBuffer, 0, zeroed.buffer);
+            }
+        } catch (e) {
+            console.warn('Failed to zero stoneBuffer during clearStones:', e);
+        }
+
+        console.log("Cleared all stones from environment.");
+    }
+    
+    // ensure clearAgents clears both the agent table and the local/GPU-backed agent arrays
+    override clearAgents(): void {
+        try {
+            // To avoid the error with undefined environment in agents,
+            // first clear our local agents array so they won't reference environment
+            this.agents = [];
+
+            // Now call the base implementation which iterates the agent table
+            super.clearAgents();
+
+            // zero the GPU agent buffer so subsequent readbacks see no agents
+            if (this.agentBuffer) {
+                const zeroed = new Uint32Array(this.maxAgents * 10);
+                this.device.queue.writeBuffer(this.agentBuffer, 0, zeroed.buffer);
+            }
+
+            console.log("Cleared all agents from environment.");
+        } catch (e) {
+            console.warn('Error during clearAgents:', e);
+        }
+    }
+    
+    // ensure clearDrops clears both the flag bits and any drop-related data
+    override clearDrops(): void {
+        // clear flag bits using base implementation
+        super.clearDrops();
+        
+        // i believe drop feature is currently not implmeneted, so i guess this function is a placeholder for now?
+        console.log("Cleared all waste/drops from environment.");
+    }
+
     // Ensure clearFood clears both the flag bits and the local/GPU-backed food arrays
     override clearFood(): void {
         // clear flag bits using base implementation
@@ -331,6 +382,8 @@ export class WebGPUComplexEnvironment extends Environment {
 
         console.log("Cleared all food from environment.");
     }
+
+    // TODO impl clearall
 
     async downloadFoodFromGPU() {
         const readBuffer = this.device.createBuffer({
