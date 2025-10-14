@@ -16,6 +16,8 @@ interface NavbarProps {
     toggleFoodMode: () => void;
     selectedFoodColor: number;
     setSelectedFoodColor: (color: number) => void;
+    placeStonesMode: boolean;  
+    onTogglePlaceStonesMode: () => void;
     removeAllFood: boolean;
     setRemoveAllFood: (b: boolean) => void;
 }
@@ -30,6 +32,8 @@ const Navbar: React.FC<NavbarProps> = ({
     toggleFoodMode,
     selectedFoodColor,
     setSelectedFoodColor,
+    placeStonesMode,
+    onTogglePlaceStonesMode,
     removeAllFood,
     setRemoveAllFood
  }: NavbarProps) => {
@@ -75,12 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
-                <EditNavButton 
-                foodMode={foodMode} 
-                toggleFoodMode={toggleFoodMode}
-                removeAllFood = {removeAllFood}
-                setRemoveAllFood = {setRemoveAllFood}
-                />
+                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode={onTogglePlaceStonesMode} removeAllFood={removeAllFood} setRemoveAllFood={setRemoveAllFood} />
                 <ViewNavButton />
                 <SimulationNavButton />
                 {foodMode && (

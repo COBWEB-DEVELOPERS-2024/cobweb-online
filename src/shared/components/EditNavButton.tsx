@@ -4,13 +4,15 @@ import {Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button} from "@he
 interface EditNavButtonProps {
     foodMode: boolean;
     toggleFoodMode: () => void;
+    placeStonesMode: boolean;
+    onTogglePlaceStonesMode: () => void; 
     removeAllFood: boolean;
     setRemoveAllFood: (b: boolean) => void;
 }
 
 const EditNavButton: React.FC<EditNavButtonProps> = ({ 
     foodMode, 
-    toggleFoodMode, 
+    toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode, 
     setRemoveAllFood
 }) => {
     const dropdownItems = [
@@ -21,8 +23,8 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({
         },
         {
             key: 'togglePlaceStonesMode',
-            label: 'Toggle Place Stones Mode',
-            action: () => {console.log("Edit nav clicked: placeStones");},
+            label: placeStonesMode ? 'Disable Place Stones Mode' : 'Enable Place Stones Mode', // Dynamic label based on state
+            action: () => {onTogglePlaceStonesMode(); console.log("File nav clicked: togglePlaceStonesMode");} 
         },
         {
             key: 'removeAllStones',

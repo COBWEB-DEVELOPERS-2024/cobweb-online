@@ -9,6 +9,9 @@ const App: React.FC = () => {
 	const [foodMode, setFoodMode] = React.useState(false);
 	const [selectedFoodColor, setSelectedFoodColor] = React.useState(0);
 	// default food color is red (index 0)
+
+	const [placeStonesMode, setPlaceStonesMode] = React.useState(false);  
+	const togglePlaceStonesMode = () => setPlaceStonesMode(m => !m);
 	const [removeAllFood, setRemoveAllFood] = React.useState(false);
 
 	const togglePause = () => setPaused(!paused);
@@ -28,7 +31,7 @@ const App: React.FC = () => {
 				foodMode={foodMode} 
 				toggleFoodMode={toggleFoodMode} 
 				selectedFoodColor={selectedFoodColor} 
-				setSelectedFoodColor={setSelectedFoodColor}
+				setSelectedFoodColor={setSelectedFoodColor} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode = {togglePlaceStonesMode}
 				removeAllFood={removeAllFood}
 				setRemoveAllFood={setRemoveAllFood}
 			/>
@@ -38,7 +41,7 @@ const App: React.FC = () => {
 			step={step} 
 			disableStep={disableStep} 
 			foodMode={foodMode} 
-			selectedFoodColor={selectedFoodColor} 
+			selectedFoodColor={selectedFoodColor} placeStonesMode = {placeStonesMode}
 			removeAllFood={removeAllFood}
 			setRemoveAllFood={setRemoveAllFood}
 			// TODO add the rest of the remove functions
