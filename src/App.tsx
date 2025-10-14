@@ -12,7 +12,13 @@ const App: React.FC = () => {
 
 	const [placeStonesMode, setPlaceStonesMode] = React.useState(false);  
 	const togglePlaceStonesMode = () => setPlaceStonesMode(m => !m);
+	
+	// Remove all state variables
 	const [removeAllFood, setRemoveAllFood] = React.useState(false);
+	const [removeAllStones, setRemoveAllStones] = React.useState(false);
+	const [removeAllAgents, setRemoveAllAgents] = React.useState(false);
+	const [removeAllWaste, setRemoveAllWaste] = React.useState(false);
+	const [removeAll, setRemoveAll] = React.useState(false);
 
 	const togglePause = () => setPaused(!paused);
 	const enableStep = () => setStep(true);
@@ -31,20 +37,38 @@ const App: React.FC = () => {
 				foodMode={foodMode} 
 				toggleFoodMode={toggleFoodMode} 
 				selectedFoodColor={selectedFoodColor} 
-				setSelectedFoodColor={setSelectedFoodColor} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode = {togglePlaceStonesMode}
+				setSelectedFoodColor={setSelectedFoodColor} 
+				placeStonesMode={placeStonesMode} 
+				onTogglePlaceStonesMode={togglePlaceStonesMode}
 				removeAllFood={removeAllFood}
 				setRemoveAllFood={setRemoveAllFood}
+				removeAllStones={removeAllStones}
+				setRemoveAllStones={setRemoveAllStones}
+				removeAllAgents={removeAllAgents}
+				setRemoveAllAgents={setRemoveAllAgents}
+				removeAllWaste={removeAllWaste}
+				setRemoveAllWaste={setRemoveAllWaste}
+				removeAll={removeAll}
+				setRemoveAll={setRemoveAll}
 			/>
 			<WebGPUCanvas 
-			paused={paused} 
-			speedFactor={speedFactor} 
-			step={step} 
-			disableStep={disableStep} 
-			foodMode={foodMode} 
-			selectedFoodColor={selectedFoodColor} placeStonesMode = {placeStonesMode}
-			removeAllFood={removeAllFood}
-			setRemoveAllFood={setRemoveAllFood}
-			// TODO add the rest of the remove functions
+				paused={paused} 
+				speedFactor={speedFactor} 
+				step={step} 
+				disableStep={disableStep} 
+				foodMode={foodMode} 
+				selectedFoodColor={selectedFoodColor} 
+				placeStonesMode={placeStonesMode}
+				removeAllFood={removeAllFood}
+				setRemoveAllFood={setRemoveAllFood}
+				removeAllStones={removeAllStones}
+				setRemoveAllStones={setRemoveAllStones}
+				removeAllAgents={removeAllAgents}
+				setRemoveAllAgents={setRemoveAllAgents}
+				removeAllWaste={removeAllWaste}
+				setRemoveAllWaste={setRemoveAllWaste}
+				removeAll={removeAll}
+				setRemoveAll={setRemoveAll}
 			/>
 		</div>
 	);

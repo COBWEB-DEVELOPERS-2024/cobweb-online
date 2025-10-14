@@ -20,6 +20,14 @@ interface NavbarProps {
     onTogglePlaceStonesMode: () => void;
     removeAllFood: boolean;
     setRemoveAllFood: (b: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (b: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (b: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (b: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (b: boolean) => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -35,7 +43,15 @@ const Navbar: React.FC<NavbarProps> = ({
     placeStonesMode,
     onTogglePlaceStonesMode,
     removeAllFood,
-    setRemoveAllFood
+    setRemoveAllFood,
+    removeAllStones,
+    setRemoveAllStones,
+    removeAllAgents,
+    setRemoveAllAgents,
+    removeAllWaste,
+    setRemoveAllWaste,
+    removeAll,
+    setRemoveAll
  }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
@@ -79,7 +95,22 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
-                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode={onTogglePlaceStonesMode} removeAllFood={removeAllFood} setRemoveAllFood={setRemoveAllFood} />
+                <EditNavButton 
+                    foodMode={foodMode} 
+                    toggleFoodMode={toggleFoodMode} 
+                    placeStonesMode={placeStonesMode} 
+                    onTogglePlaceStonesMode={onTogglePlaceStonesMode} 
+                    removeAllFood={removeAllFood} 
+                    setRemoveAllFood={setRemoveAllFood}
+                    removeAllStones={removeAllStones}
+                    setRemoveAllStones={setRemoveAllStones}
+                    removeAllAgents={removeAllAgents}
+                    setRemoveAllAgents={setRemoveAllAgents}
+                    removeAllWaste={removeAllWaste}
+                    setRemoveAllWaste={setRemoveAllWaste}
+                    removeAll={removeAll}
+                    setRemoveAll={setRemoveAll} 
+                />
                 <ViewNavButton />
                 <SimulationNavButton />
                 {foodMode && (

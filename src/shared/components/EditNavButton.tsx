@@ -8,12 +8,20 @@ interface EditNavButtonProps {
     onTogglePlaceStonesMode: () => void; 
     removeAllFood: boolean;
     setRemoveAllFood: (b: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (b: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (b: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (b: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (b: boolean) => void;
 }
 
 const EditNavButton: React.FC<EditNavButtonProps> = ({ 
     foodMode, 
     toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode, 
-    setRemoveAllFood
+    setRemoveAllFood, setRemoveAllStones, setRemoveAllAgents, setRemoveAllWaste, setRemoveAll
 }) => {
     const dropdownItems = [
         {
@@ -30,6 +38,7 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({
             key: 'removeAllStones',
             label: 'Remove All Stones',
             action: () => {
+                setRemoveAllStones(true);
                 console.log("File nav clicked: removeAllStones");
             },
         },
@@ -44,18 +53,21 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({
             key: 'removeAllAgents',
             label: 'Remove All Agents',
             action: () => {
+                setRemoveAllAgents(true);
                 console.log("File nav clicked: removeAllAgents");},
         },
         {
             key: 'removeAllWaste',
             label: 'Remove All Waste',
             action: () => {
+                setRemoveAllWaste(true);
                 console.log("File nav clicked: removeAllWaste");},
         },
         {
             key: 'removeAll',
             label: 'Remove All',
             action: () => {
+                setRemoveAll(true);
                 console.log("File nav clicked: removeAll");},
         },
     ];

@@ -20,9 +20,35 @@ interface WebGPUCanvasProps {
     placeStonesMode: boolean;
     removeAllFood: boolean;
     setRemoveAllFood: (b: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (b: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (b: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (b: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (b: boolean) => void;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor, placeStonesMode, removeAllFood, setRemoveAllFood }: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ 
+    paused, 
+    speedFactor, 
+    step, 
+    disableStep, 
+    foodMode, 
+    selectedFoodColor, 
+    placeStonesMode, 
+    removeAllFood, 
+    setRemoveAllFood,
+    removeAllStones,
+    setRemoveAllStones,
+    removeAllAgents,
+    setRemoveAllAgents,
+    removeAllWaste,
+    setRemoveAllWaste,
+    removeAll,
+    setRemoveAll
+}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -160,6 +186,192 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         }
 
     }, [removeAllFood]);
+
+    // useEffect to clear all stones when removeAllStones is toggled
+    useEffect(() => {
+        if (!simulationRef.current) return;
+
+        const sim = simulationRef.current;
+
+        if (!removeAllStones) return;
+
+        console.log("removeAllStones triggered: clearing all stones from the grid");
+
+        // Diagnostic: log counts before clearing
+        try {
+            console.log('Stones before clear:', sim.getStoneData().length);
+        } catch (e) {
+            console.warn('Could not read sim data before clear:', e);
+        }
+
+        // clear only stones
+        sim.clearStones();
+
+        // Diagnostic: log counts after clearing
+        try {
+            console.log('Stones after clear:', sim.getStoneData().length);
+        } catch (e) {
+            console.warn('Could not read sim data after clear:', e);
+        }
+
+        // refresh rendering data and push to GPU renderer
+        updateRenderingData();
+
+        if (rendererRef.current) {
+            rendererRef.current.updateShapes(
+                triLocations,
+                triRotations,
+                triColors,
+                sqLocations,
+                sqColors,
+                rockRef.current
+            );
+        }
+
+        // reset the flag in parent
+        try {
+            setRemoveAllStones(false);
+        } catch (e) {
+            console.error('Failed to reset removeAllStones flag:', e);
+        }
+    }, [removeAllStones]);
+
+    // useEffect to clear all agents when removeAllAgents is toggled
+    useEffect(() => {
+        if (!simulationRef.current) return;
+
+        const sim = simulationRef.current;
+
+        if (!removeAllAgents) return;
+
+        console.log("removeAllAgents triggered: clearing all agents from the grid");
+
+        // Diagnostic: log counts before clearing
+        try {
+            console.log('Agents before clear:', sim.getAgentData().length);
+        } catch (e) {
+            console.warn('Could not read sim data before clear:', e);
+        }
+
+        // clear only agents
+        sim.clearAgents();
+
+        // Diagnostic: log counts after clearing
+        try {
+            console.log('Agents after clear:', sim.getAgentData().length);
+        } catch (e) {
+            console.warn('Could not read sim data after clear:', e);
+        }
+
+        // refresh rendering data and push to GPU renderer
+        updateRenderingData();
+
+        if (rendererRef.current) {
+            rendererRef.current.updateShapes(
+                triLocations,
+                triRotations,
+                triColors,
+                sqLocations,
+                sqColors,
+                rockRef.current
+            );
+        }
+
+        // reset the flag in parent
+        try {
+            setRemoveAllAgents(false);
+        } catch (e) {
+            console.error('Failed to reset removeAllAgents flag:', e);
+        }
+    }, [removeAllAgents]);
+
+    // useEffect to clear all waste when removeAllWaste is toggled
+    useEffect(() => {
+        if (!simulationRef.current) return;
+
+        const sim = simulationRef.current;
+
+        if (!removeAllWaste) return;
+
+        console.log("removeAllWaste triggered: clearing all waste from the grid");
+
+        // clear only waste
+        sim.clearWaste();
+
+        // refresh rendering data and push to GPU renderer
+        updateRenderingData();
+
+        if (rendererRef.current) {
+            rendererRef.current.updateShapes(
+                triLocations,
+                triRotations,
+                triColors,
+                sqLocations,
+                sqColors,
+                rockRef.current
+            );
+        }
+
+        // reset the flag in parent
+        try {
+            setRemoveAllWaste(false);
+        } catch (e) {
+            console.error('Failed to reset removeAllWaste flag:', e);
+        }
+    }, [removeAllWaste]);
+
+    // useEffect to clear everything when removeAll is toggled
+    useEffect(() => {
+        if (!simulationRef.current) return;
+
+        const sim = simulationRef.current;
+
+        if (!removeAll) return;
+
+        console.log("removeAll triggered: clearing everything from the grid");
+
+        // Diagnostic: log counts before clearing
+        try {
+            console.log('Agents before clear:', sim.getAgentData().length);
+            console.log('Food before clear:', sim.getFoodData().length);
+            console.log('Stones before clear:', sim.getStoneData().length);
+        } catch (e) {
+            console.warn('Could not read sim data before clear:', e);
+        }
+
+        // clear everything
+        sim.clearAll();
+
+        // Diagnostic: log counts after clearing
+        try {
+            console.log('Agents after clear:', sim.getAgentData().length);
+            console.log('Food after clear:', sim.getFoodData().length);
+            console.log('Stones after clear:', sim.getStoneData().length);
+        } catch (e) {
+            console.warn('Could not read sim data after clear:', e);
+        }
+
+        // refresh rendering data and push to GPU renderer
+        updateRenderingData();
+
+        if (rendererRef.current) {
+            rendererRef.current.updateShapes(
+                triLocations,
+                triRotations,
+                triColors,
+                sqLocations,
+                sqColors,
+                rockRef.current
+            );
+        }
+
+        // reset the flag in parent
+        try {
+            setRemoveAll(false);
+        } catch (e) {
+            console.error('Failed to reset removeAll flag:', e);
+        }
+    }, [removeAll]);
 
     // useEffect to initialize the canvas and renderer
     useEffect(() => {
