@@ -24,7 +24,6 @@ const App: React.FC = () => {
 	const enableStep = () => setStep(true);
 	const disableStep = () => setStep(false);
 	const toggleFoodMode = () => setFoodMode(!foodMode);
-	// TODO add the rest of the remove functions
 
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">

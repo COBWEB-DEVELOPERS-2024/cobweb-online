@@ -383,8 +383,6 @@ export class WebGPUComplexEnvironment extends Environment {
         console.log("Cleared all food from environment.");
     }
 
-    // TODO impl clearall
-
     async downloadFoodFromGPU() {
         const readBuffer = this.device.createBuffer({
             size: this.maxFood * 3 * 4,
