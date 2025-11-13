@@ -28,6 +28,8 @@ interface WebGPUCanvasProps {
     setRemoveAllWaste: (b: boolean) => void;
     removeAll: boolean;
     setRemoveAll: (b: boolean) => void;
+    moveAgentsMode: boolean;
+    moveFoodMode: boolean;
 }
 
 const WebGPUCanvas = ({ 
@@ -47,7 +49,9 @@ const WebGPUCanvas = ({
     removeAllWaste,
     setRemoveAllWaste,
     removeAll,
-    setRemoveAll
+    setRemoveAll,
+    moveAgentsMode,
+    moveFoodMode
 }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const [ready, setReady] = useState(false);
@@ -55,6 +59,7 @@ const WebGPUCanvas = ({
     const rendererRef = useRef<WebGPURenderer | null>(null);
     const simulationRef = useRef<Simulation | null>(null);
     const rockRef = useRef<number[][]>([]); // to track placed rocks
+    const isDragLockRef = useRef(false);
     var triLocations: number[][] = [];
     var triRotations: number[] = [];
     var triColors: number[] = [];
@@ -124,12 +129,10 @@ const WebGPUCanvas = ({
         console.log(`Added food at grid position (${x}, ${y})`);
     }
 
-    // helper: handle mouse click for food placement
     function handleCanvasClick(event: React.MouseEvent<HTMLCanvasElement>) {
-        if (foodMode) {
-            handleFoodPlacement(event);
+        if (foodMode && !moveFoodMode) {
+        handleFoodPlacement(event);
         }
-        // else, could handle other click interactions here
     }
 
     // useEffect to clear the grid when removeAllFood is toggled
@@ -408,20 +411,32 @@ const WebGPUCanvas = ({
     // helper: a function to update the grid
     function updateGrid() {
         if (rendererRef.current && simulationRef.current) {
-            console.log(simulationRef.current);
-            stepCobwebSimulation(simulationRef.current).then(() => {
-                updateRenderingData();
-                rendererRef.current!.updateShapes(
-                    triLocations,
-                    triRotations,
-                    triColors,
-                    sqLocations,
-                    sqColors,
-                    rockRef.current
-                );
-            }).catch(console.error);
-        }
+        if (isDragLockRef.current) {
+            updateRenderingData();
+            rendererRef.current!.updateShapes(
+            triLocations,
+            triRotations,
+            triColors,
+            sqLocations,
+            sqColors,
+            rockRef.current);
+        return;
     }
+
+    stepCobwebSimulation(simulationRef.current).then(() => {
+      updateRenderingData();
+      rendererRef.current!.updateShapes(
+        triLocations,
+        triRotations,
+        triColors,
+        sqLocations,
+        sqColors,
+        rockRef.current
+      );
+    }).catch(console.error);
+  }
+}
+
 
     // useEffect to start the update loop when 'Play' is clicked, and pause it when 'Pause' is clicked
     useEffect(() => {
@@ -520,6 +535,90 @@ const WebGPUCanvas = ({
         canvas.removeEventListener("contextmenu", onContextMenu);
     };
     }, [ready,placeStonesMode]);
+
+    useEffect(() => {
+    if (!ready) return;
+    const canvas = canvasRef.current;
+    const sim = simulationRef.current;
+    if (!canvas || !sim) return;
+
+    if ((!moveAgentsMode && !moveFoodMode) || placeStonesMode) return;
+
+    let dragging: null | { kind: "agent" | "food"; i: number; j: number } = null;
+
+    const refresh = () => {
+        updateRenderingData();
+        rendererRef.current?.updateShapes(
+        triLocations,
+        triRotations,
+        triColors,
+        sqLocations,
+        sqColors,
+        rockRef.current
+        );
+    };
+
+    const onPointerDown = (ev: PointerEvent) => {
+        if (ev.button !== 0) return;
+        const { x, y } = clientToCanvasXY(ev as any as MouseEvent, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+
+        const hitAgent = sim.getAgentAt(i, j);
+        const foodIdx = sim.getFoodIndexAt(i, j);
+
+        if (moveAgentsMode && hitAgent) {
+        dragging = { kind: "agent", i, j };
+        isDragLockRef.current = true;
+        canvas.setPointerCapture?.(ev.pointerId);
+        ev.preventDefault();
+        return;
+        }
+
+        if (moveFoodMode && foodIdx !== -1) {
+        dragging = { kind: "food", i, j };
+        isDragLockRef.current = true;
+        canvas.setPointerCapture?.(ev.pointerId);
+        ev.preventDefault();
+        return;
+        }
+    };
+
+    const onPointerMove = (ev: PointerEvent) => {
+        if (!dragging) return;
+        const { x, y } = clientToCanvasXY(ev as any as MouseEvent, canvas);
+        const { i, j } = canvasXYToCell(x, y, canvas);
+        if (dragging.i === i && dragging.j === j) return;
+
+        if (dragging.kind === "agent") {
+        sim.moveAgentCell(dragging.i, dragging.j, i, j, { forbidOverlap: true });
+        } else {
+        sim.moveFoodCell(dragging.i, dragging.j, i, j, { forbidOverlap: true });
+        }
+        dragging.i = i;
+        dragging.j = j;
+        refresh();
+        ev.preventDefault();
+    };
+
+    const onPointerUp = (ev: PointerEvent) => {
+        if (!dragging) return;
+        dragging = null;
+        isDragLockRef.current = false;
+        canvas.releasePointerCapture?.(ev.pointerId);
+        ev.preventDefault();
+    };
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+
+    return () => {
+        canvas.removeEventListener("pointerdown", onPointerDown);
+        canvas.removeEventListener("pointermove", onPointerMove);
+        window.removeEventListener("pointerup", onPointerUp);
+    };
+    }, [ready, moveAgentsMode, moveFoodMode, placeStonesMode]);
+
 
 
     return (

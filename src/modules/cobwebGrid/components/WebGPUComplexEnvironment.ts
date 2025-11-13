@@ -413,7 +413,130 @@ export class WebGPUComplexEnvironment extends Environment {
     getFood() {
         return this.food;
     }
+    // ======== Drag & Hit Helpers (for moving Agents / Food) ========
+private clampCell(v: number) {
+  return Math.max(0, Math.min(63, v));
+}
 
+private toLoc(i: number, j: number) {
+  return new Location(this.clampCell(i), this.clampCell(j));
+}
+
+getAgentAt(i: number, j: number): ComplexAgent | undefined {
+  return this.agents.find(
+    a =>
+      a.position && a.position.x === i && a.position.y === j
+  );
+}
+
+getFoodIndexAt(i: number, j: number): number {
+  return this.food.findIndex(f => f.x === i && f.y === j);
+}
+
+hasFoodAt(i: number, j: number): boolean {
+  return this.getFoodIndexAt(i, j) !== -1;
+}
+
+removeFoodAt(i: number, j: number): void {
+  const idx = this.getFoodIndexAt(i, j);
+  if (idx === -1) return;
+
+  this.food.splice(idx, 1);
+  const snapshot = [...this.food];
+  super.clearFood();
+  for (const f of snapshot) {
+    super.addFood(this.toLoc(f.x, f.y), f.foodType);
+  }
+  if (this.foodBuffer) {
+    this.uploadFoodToGPU();
+  }
+}
+
+moveFoodTo(i0: number, j0: number, i1: number, j1: number, opts?: { forbidOverlap?: boolean }): boolean {
+  i1 = this.clampCell(i1);
+  j1 = this.clampCell(j1);
+  const idx = this.getFoodIndexAt(i0, j0);
+  if (idx === -1) return false;
+
+  if (opts?.forbidOverlap) {
+    const dst = this.toLoc(i1, j1);
+    if (this.hasStone(dst) || this.hasAgent(dst) || this.hasDrop(dst) || this.hasFoodAt(i1, j1)) {
+      return false;
+    }
+  }
+
+  const type = this.food[idx].foodType;
+  this.food[idx].x = i1;
+  this.food[idx].y = j1;
+  this.food[idx].foodType = type;
+
+  const snapshot = [...this.food];
+  super.clearFood();
+  for (const f of snapshot) {
+    super.addFood(this.toLoc(f.x, f.y), f.foodType);
+  }
+  if (this.foodBuffer) {
+    this.uploadFoodToGPU();
+  }
+  return true;
+}
+
+setAgentPosition(agentId: number, loc: Location, opts?: { forbidOverlap?: boolean; eagerUpload?: boolean }): boolean {
+  const a = this.agents.find(ag => ag.id === agentId);
+  if (!a) return false;
+
+  const i1 = this.clampCell(loc.x);
+  const j1 = this.clampCell(loc.y);
+
+  if (opts?.forbidOverlap) {
+    const dst = this.toLoc(i1, j1);
+    if (this.hasStone(dst) || this.hasAgent(dst) || this.hasDrop(dst)) return false;
+  }
+
+  const dir = a.position?.direction ?? new Direction(0, 0);
+  a.position = new LocationDirection(new Location(i1, j1), dir);
+  this.setAgent(a.position, a);
+
+  
+  if (opts?.eagerUpload && this.agentBuffer) {
+  this.uploadAgentsToGPU();
+}
+
+  return true;
+}
+
+removeAgentAt(i: number, j: number): boolean {
+  const idx = this.agents.findIndex(a => a.position && a.position.x === i && a.position.y === j);
+  if (idx === -1) return false;
+
+  const removed = this.agents.splice(idx, 1)[0];
+
+  // mark as death
+  removed.alive = false;
+
+  // rebuild agent table
+  super.clearAgents();
+  for (const ag of this.agents) {
+    if (ag.position) {
+      this.setAgent(new Location(ag.position.x, ag.position.y), ag);
+    }
+  }
+
+  if (this.agentBuffer) {
+    this.uploadAgentsToGPU();
+  }
+
+  return true;
+}
+
+
+moveAgentTo(i0: number, j0: number, i1: number, j1: number, opts?: { forbidOverlap?: boolean; eagerUpload?: boolean }): boolean {
+  const a = this.getAgentAt(i0, j0);
+  if (!a) return false;
+  return this.setAgentPosition(a.id!, this.toLoc(i1, j1), opts);
+}
+
+    
     getSimulationState() {
         return {
             agents: this.agents,

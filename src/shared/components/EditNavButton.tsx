@@ -16,12 +16,16 @@ interface EditNavButtonProps {
     setRemoveAllWaste: (b: boolean) => void;
     removeAll: boolean;
     setRemoveAll: (b: boolean) => void;
+    moveAgentsMode: boolean;
+    toggleMoveAgentsMode: () => void;
+    moveFoodMode: boolean;
+    toggleMoveFoodMode: () => void;
 }
 
 const EditNavButton: React.FC<EditNavButtonProps> = ({ 
     foodMode, 
     toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode, 
-    setRemoveAllFood, setRemoveAllStones, setRemoveAllAgents, setRemoveAllWaste, setRemoveAll
+    setRemoveAllFood, setRemoveAllStones, setRemoveAllAgents, setRemoveAllWaste, setRemoveAll,toggleMoveAgentsMode, toggleMoveFoodMode, moveAgentsMode, moveFoodMode
 }) => {
     const dropdownItems = [
         {
@@ -69,6 +73,22 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({
             action: () => {
                 setRemoveAll(true);
                 console.log("File nav clicked: removeAll");},
+        },
+        {
+            key: 'toggleMoveAgentsMode',
+            label: moveAgentsMode ? 'Disable Move Agents' : 'Enable Move Agents',
+            action: () => {
+            toggleMoveAgentsMode();
+            console.log("Edit nav clicked: toggleMoveAgentsMode");
+            }
+        },
+        {
+        key: 'toggleMoveFoodMode',
+        label: moveFoodMode ? 'Disable Move Food' : 'Enable Move Food',
+        action: () => {
+            toggleMoveFoodMode();
+            console.log("Edit nav clicked: toggleMoveFoodMode");
+        }
         },
     ];
 

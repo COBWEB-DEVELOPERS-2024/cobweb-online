@@ -28,6 +28,10 @@ interface NavbarProps {
     setRemoveAllWaste: (b: boolean) => void;
     removeAll: boolean;
     setRemoveAll: (b: boolean) => void;
+    moveAgentsMode: boolean;
+    toggleMoveAgentsMode: () => void;
+    moveFoodMode: boolean;
+    toggleMoveFoodMode: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -51,7 +55,11 @@ const Navbar: React.FC<NavbarProps> = ({
     removeAllWaste,
     setRemoveAllWaste,
     removeAll,
-    setRemoveAll
+    setRemoveAll,
+    moveAgentsMode,
+    toggleMoveAgentsMode,
+    moveFoodMode,
+    toggleMoveFoodMode
  }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
@@ -91,7 +99,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     isDisabled={!paused}
                 > Step </Button>
             </div>
-
+        
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
@@ -110,6 +118,10 @@ const Navbar: React.FC<NavbarProps> = ({
                     setRemoveAllWaste={setRemoveAllWaste}
                     removeAll={removeAll}
                     setRemoveAll={setRemoveAll} 
+                    moveAgentsMode={moveAgentsMode}
+                    toggleMoveAgentsMode={toggleMoveAgentsMode}
+                    moveFoodMode={moveFoodMode}
+                    toggleMoveFoodMode={toggleMoveFoodMode}
                 />
                 <ViewNavButton />
                 <SimulationNavButton />

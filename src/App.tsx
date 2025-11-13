@@ -25,6 +25,23 @@ const App: React.FC = () => {
 	const disableStep = () => setStep(false);
 	const toggleFoodMode = () => setFoodMode(!foodMode);
 
+	const [moveAgentsMode, setMoveAgentsMode] = React.useState(false);
+  	const [moveFoodMode, setMoveFoodMode] = React.useState(false);
+  	const toggleMoveAgentsMode = () => {
+    	setMoveAgentsMode(v => {
+      	const nv = !v;
+      	if (nv) setMoveFoodMode(false); // Avoid conflict
+      	return nv;
+    	});
+  	};
+  	const toggleMoveFoodMode = () => {
+    	setMoveFoodMode(v => {
+      	const nv = !v;
+      	if (nv) setMoveAgentsMode(false); // Avoid conflict
+      	return nv;
+    	});
+  	};
+
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">
 			<Navbar 
@@ -49,6 +66,10 @@ const App: React.FC = () => {
 				setRemoveAllWaste={setRemoveAllWaste}
 				removeAll={removeAll}
 				setRemoveAll={setRemoveAll}
+				moveAgentsMode={moveAgentsMode}
+        		toggleMoveAgentsMode={toggleMoveAgentsMode}
+        		moveFoodMode={moveFoodMode}
+        		toggleMoveFoodMode={toggleMoveFoodMode}
 			/>
 			<WebGPUCanvas 
 				paused={paused} 
@@ -68,6 +89,8 @@ const App: React.FC = () => {
 				setRemoveAllWaste={setRemoveAllWaste}
 				removeAll={removeAll}
 				setRemoveAll={setRemoveAll}
+				moveAgentsMode={moveAgentsMode}
+        		moveFoodMode={moveFoodMode}
 			/>
 		</div>
 	);
