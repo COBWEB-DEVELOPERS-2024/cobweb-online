@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initCobwebGrid, WebGPURenderer } from "./webgpuCobwebGrid";
 import {Simulation} from '../processing/Simulation';
 import {
@@ -17,6 +17,7 @@ interface WebGPUCanvasProps {
 
 const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
+    const [webGPUErrorMessage, setWebGPUErrorMessage] = useState<string | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const rendererRef = useRef<WebGPURenderer | null>(null);
     const simulationRef = useRef<Simulation | null>(null);
@@ -58,7 +59,9 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
                     sqColors
                 ).then(renderer => {
                     rendererRef.current = renderer;
-                }).catch(console.error);
+                });
+            }).catch(err => {
+                setWebGPUErrorMessage(err.message);
             });
         }
     }, []);
@@ -108,10 +111,18 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep }: WebGPUCanvasPr
 
     return (
         <div className="flex justify-center items-center flex-grow">
-            <canvas
-                ref={canvasRef}
-                className="w-[85vh] h-[85vh] aspect-square border-3 border-emerald-600 shadow-xl"
-            />
+            {webGPUErrorMessage !== null ? (
+                <div className="text-red-500 mb-4 text-center">
+                    <p>Error initializing WebGPU: {webGPUErrorMessage}</p>
+                    <br/>
+                    <p>Make sure you are using a browser that supports WebGPU (like Chrome)</p>
+                </div>
+            ) : (
+                <canvas
+                    ref={canvasRef}
+                    className="w-5/6 h-5/6 aspect-square border-3 border-emerald-600 shadow-xl"
+                />
+            )}
         </div>
     );
 };
