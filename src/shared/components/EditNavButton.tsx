@@ -6,9 +6,24 @@ interface EditNavButtonProps {
     toggleFoodMode: () => void;
     placeStonesMode: boolean;
     onTogglePlaceStonesMode: () => void; 
+    setRemoveAllFood: (value: boolean) => void;
+    setRemoveAllStones: (value: boolean) => void;
+    setRemoveAllAgents: (value: boolean) => void;
+    setRemoveAllWaste: (value: boolean) => void;
+    setRemoveAll: (value: boolean) => void;
 }
 
-const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode }) => {
+const EditNavButton: React.FC<EditNavButtonProps> = ({ 
+    foodMode, 
+    toggleFoodMode,
+    placeStonesMode, 
+    onTogglePlaceStonesMode, 
+    setRemoveAllFood,
+    setRemoveAllStones,
+    setRemoveAllAgents,
+    setRemoveAllWaste,
+    setRemoveAll
+}) => {
     const dropdownItems = [
         {
             key: 'toggleFoodMode',
@@ -23,27 +38,27 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode,
         {
             key: 'removeAllStones',
             label: 'Remove All Stones',
-            action: () => {console.log("File nav clicked: removeAllStones");},
+            action: () => {setRemoveAllStones(true); console.log("File nav clicked: removeAllStones");},
         },
         {
             key: 'removeAllFood',
             label: 'Remove All Food',
-            action: () => {console.log("File nav clicked: removeAllFood");},
+            action: () => {setRemoveAllFood(true); console.log("File nav clicked: removeAllFood");},
         },
         {
             key: 'removeAllAgents',
             label: 'Remove All Agents',
-            action: () => {console.log("File nav clicked: removeAllAgents");},
+            action: () => {setRemoveAllAgents(true); console.log("File nav clicked: removeAllAgents");},
         },
         {
             key: 'removeAllWaste',
             label: 'Remove All Waste',
-            action: () => {console.log("File nav clicked: removeAllWaste");},
+            action: () => {setRemoveAllWaste(true); console.log("File nav clicked: removeAllWaste");},
         },
         {
             key: 'removeAll',
             label: 'Remove All',
-            action: () => {console.log("File nav clicked: removeAll");},
+            action: () => {setRemoveAll(true); console.log("File nav clicked: removeAll");},
         },
     ];
 
