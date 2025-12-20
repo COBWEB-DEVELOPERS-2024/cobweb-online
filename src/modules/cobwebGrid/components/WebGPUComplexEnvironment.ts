@@ -487,23 +487,42 @@ setAgentPosition(agentId: number, loc: Location, opts?: { forbidOverlap?: boolea
 
   const i1 = this.clampCell(loc.x);
   const j1 = this.clampCell(loc.y);
+  // Remember old position
+  const oldX = a.position?.x;
+  const oldY = a.position?.y;
 
   if (opts?.forbidOverlap) {
-    const dst = this.toLoc(i1, j1);
-    if (this.hasStone(dst) || this.hasAgent(dst) || this.hasDrop(dst)) return false;
+
+    if (!(oldX === i1 && oldY === j1)) {
+      const dst = this.toLoc(i1, j1);
+
+      if (this.hasStone(dst) || this.hasDrop(dst)) return false;
+
+      const occupiedByOther = this.agents.some(
+        ag =>
+          ag.alive &&
+          ag.id !== agentId &&
+          ag.position &&
+          ag.position.x === i1 &&
+          ag.position.y === j1
+      );
+      if (occupiedByOther) return false;
+    }
   }
 
   const dir = a.position?.direction ?? new Direction(0, 0);
   a.position = new LocationDirection(new Location(i1, j1), dir);
+
+  // Update the environment table for rendering / queries.
   this.setAgent(a.position, a);
 
-  
   if (opts?.eagerUpload && this.agentBuffer) {
-  this.uploadAgentsToGPU();
-}
-
+    this.uploadAgentsToGPU();
+  }
+  
   return true;
 }
+
 
 removeAgentAt(i: number, j: number): boolean {
   const idx = this.agents.findIndex(a => a.position && a.position.x === i && a.position.y === j);
