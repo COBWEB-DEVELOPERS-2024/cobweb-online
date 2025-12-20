@@ -310,6 +310,79 @@ export class WebGPUComplexEnvironment extends Environment {
         this.device.queue.writeBuffer(this.stoneBuffer!, 0, staging.buffer);
     }
 
+    // Ensure clearStones clears both the flag bits and the local/GPU-backed stone arrays
+    override clearStones(): void {
+        // clear local cache of stones
+        this.stones = [];
+        // clear flag bits using base implementation
+        super.clearStones();
+
+        // zero the GPU stone buffer so subsequent readbacks see no stones
+        try {
+            if (this.stoneBuffer) {
+                const zeroed = new Uint32Array(this.maxStones * 2);
+                this.device.queue.writeBuffer(this.stoneBuffer, 0, zeroed.buffer);
+            }
+        } catch (e) {
+            console.warn('Failed to zero stoneBuffer during clearStones:', e);
+        }
+
+        console.log("Cleared all stones from environment.");
+    }
+    
+    // ensure clearAgents clears both the agent table and the local/GPU-backed agent arrays
+    override clearAgents(): void {
+        try {
+            // To avoid the error with undefined environment in agents,
+            // first clear our local agents array so they won't reference environment
+            this.agents = [];
+
+            // Now call the base implementation which iterates the agent table
+            super.clearAgents();
+
+            // zero the GPU agent buffer so subsequent readbacks see no agents
+            if (this.agentBuffer) {
+                const zeroed = new Uint32Array(this.maxAgents * 10);
+                this.device.queue.writeBuffer(this.agentBuffer, 0, zeroed.buffer);
+            }
+
+            console.log("Cleared all agents from environment.");
+        } catch (e) {
+            console.warn('Error during clearAgents:', e);
+        }
+    }
+    
+    // ensure clearDrops clears both the flag bits and any drop-related data
+    override clearDrops(): void {
+        // clear flag bits using base implementation
+        super.clearDrops();
+        
+        // i believe drop feature is currently not implmeneted, so i guess this function is a placeholder for now?
+        console.log("Cleared all waste/drops from environment.");
+    }
+
+    // Ensure clearFood clears both the flag bits and the local/GPU-backed food arrays
+    override clearFood(): void {
+        // clear flag bits using base implementation
+        super.clearFood();
+
+        // clear local cache and uploaded count
+        this.food = [];
+        this.uploadedFoodCount = 0;
+
+        // zero the GPU food buffer so subsequent readbacks see no food
+        try {
+            if (this.foodBuffer) {
+                const zeroed = new Uint32Array(this.maxFood * 3);
+                this.device.queue.writeBuffer(this.foodBuffer, 0, zeroed.buffer);
+            }
+        } catch (e) {
+            console.warn('Failed to zero foodBuffer during clearFood:', e);
+        }
+
+        console.log("Cleared all food from environment.");
+    }
+
     async downloadFoodFromGPU() {
         const readBuffer = this.device.createBuffer({
             size: this.maxFood * 3 * 4,
@@ -340,7 +413,149 @@ export class WebGPUComplexEnvironment extends Environment {
     getFood() {
         return this.food;
     }
+    // ======== Drag & Hit Helpers (for moving Agents / Food) ========
+private clampCell(v: number) {
+  return Math.max(0, Math.min(63, v));
+}
 
+private toLoc(i: number, j: number) {
+  return new Location(this.clampCell(i), this.clampCell(j));
+}
+
+getAgentAt(i: number, j: number): ComplexAgent | undefined {
+  return this.agents.find(
+    a =>
+      a.position && a.position.x === i && a.position.y === j
+  );
+}
+
+getFoodIndexAt(i: number, j: number): number {
+  return this.food.findIndex(f => f.x === i && f.y === j);
+}
+
+hasFoodAt(i: number, j: number): boolean {
+  return this.getFoodIndexAt(i, j) !== -1;
+}
+
+removeFoodAt(i: number, j: number): void {
+  const idx = this.getFoodIndexAt(i, j);
+  if (idx === -1) return;
+
+  this.food.splice(idx, 1);
+  const snapshot = [...this.food];
+  super.clearFood();
+  for (const f of snapshot) {
+    super.addFood(this.toLoc(f.x, f.y), f.foodType);
+  }
+  if (this.foodBuffer) {
+    this.uploadFoodToGPU();
+  }
+}
+
+moveFoodTo(i0: number, j0: number, i1: number, j1: number, opts?: { forbidOverlap?: boolean }): boolean {
+  i1 = this.clampCell(i1);
+  j1 = this.clampCell(j1);
+  const idx = this.getFoodIndexAt(i0, j0);
+  if (idx === -1) return false;
+
+  if (opts?.forbidOverlap) {
+    const dst = this.toLoc(i1, j1);
+    if (this.hasStone(dst) || this.hasAgent(dst) || this.hasDrop(dst) || this.hasFoodAt(i1, j1)) {
+      return false;
+    }
+  }
+
+  const type = this.food[idx].foodType;
+  this.food[idx].x = i1;
+  this.food[idx].y = j1;
+  this.food[idx].foodType = type;
+
+  const snapshot = [...this.food];
+  super.clearFood();
+  for (const f of snapshot) {
+    super.addFood(this.toLoc(f.x, f.y), f.foodType);
+  }
+  if (this.foodBuffer) {
+    this.uploadFoodToGPU();
+  }
+  return true;
+}
+
+setAgentPosition(agentId: number, loc: Location, opts?: { forbidOverlap?: boolean; eagerUpload?: boolean }): boolean {
+  const a = this.agents.find(ag => ag.id === agentId);
+  if (!a) return false;
+
+  const i1 = this.clampCell(loc.x);
+  const j1 = this.clampCell(loc.y);
+  // Remember old position
+  const oldX = a.position?.x;
+  const oldY = a.position?.y;
+
+  if (opts?.forbidOverlap) {
+
+    if (!(oldX === i1 && oldY === j1)) {
+      const dst = this.toLoc(i1, j1);
+
+      if (this.hasStone(dst) || this.hasDrop(dst)) return false;
+
+      const occupiedByOther = this.agents.some(
+        ag =>
+          ag.alive &&
+          ag.id !== agentId &&
+          ag.position &&
+          ag.position.x === i1 &&
+          ag.position.y === j1
+      );
+      if (occupiedByOther) return false;
+    }
+  }
+
+  const dir = a.position?.direction ?? new Direction(0, 0);
+  a.position = new LocationDirection(new Location(i1, j1), dir);
+
+  // Update the environment table for rendering / queries.
+  this.setAgent(a.position, a);
+
+  if (opts?.eagerUpload && this.agentBuffer) {
+    this.uploadAgentsToGPU();
+  }
+  
+  return true;
+}
+
+
+removeAgentAt(i: number, j: number): boolean {
+  const idx = this.agents.findIndex(a => a.position && a.position.x === i && a.position.y === j);
+  if (idx === -1) return false;
+
+  const removed = this.agents.splice(idx, 1)[0];
+
+  // mark as death
+  removed.alive = false;
+
+  // rebuild agent table
+  super.clearAgents();
+  for (const ag of this.agents) {
+    if (ag.position) {
+      this.setAgent(new Location(ag.position.x, ag.position.y), ag);
+    }
+  }
+
+  if (this.agentBuffer) {
+    this.uploadAgentsToGPU();
+  }
+
+  return true;
+}
+
+
+moveAgentTo(i0: number, j0: number, i1: number, j1: number, opts?: { forbidOverlap?: boolean; eagerUpload?: boolean }): boolean {
+  const a = this.getAgentAt(i0, j0);
+  if (!a) return false;
+  return this.setAgentPosition(a.id!, this.toLoc(i1, j1), opts);
+}
+
+    
     getSimulationState() {
         return {
             agents: this.agents,

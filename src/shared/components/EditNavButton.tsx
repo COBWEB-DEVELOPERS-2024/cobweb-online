@@ -6,9 +6,27 @@ interface EditNavButtonProps {
     toggleFoodMode: () => void;
     placeStonesMode: boolean;
     onTogglePlaceStonesMode: () => void; 
+    removeAllFood: boolean;
+    setRemoveAllFood: (b: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (b: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (b: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (b: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (b: boolean) => void;
+    moveAgentsMode: boolean;
+    toggleMoveAgentsMode: () => void;
+    moveFoodMode: boolean;
+    toggleMoveFoodMode: () => void;
 }
 
-const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode }) => {
+const EditNavButton: React.FC<EditNavButtonProps> = ({ 
+    foodMode, 
+    toggleFoodMode, placeStonesMode, onTogglePlaceStonesMode, 
+    setRemoveAllFood, setRemoveAllStones, setRemoveAllAgents, setRemoveAllWaste, setRemoveAll,toggleMoveAgentsMode, toggleMoveFoodMode, moveAgentsMode, moveFoodMode
+}) => {
     const dropdownItems = [
         {
             key: 'toggleFoodMode',
@@ -23,27 +41,54 @@ const EditNavButton: React.FC<EditNavButtonProps> = ({ foodMode, toggleFoodMode,
         {
             key: 'removeAllStones',
             label: 'Remove All Stones',
-            action: () => {console.log("File nav clicked: removeAllStones");},
+            action: () => {
+                setRemoveAllStones(true);
+                console.log("File nav clicked: removeAllStones");
+            },
         },
         {
             key: 'removeAllFood',
             label: 'Remove All Food',
-            action: () => {console.log("File nav clicked: removeAllFood");},
+            action: () => {
+                setRemoveAllFood(true);
+                console.log("File nav clicked: removeAllFood");},
         },
         {
             key: 'removeAllAgents',
             label: 'Remove All Agents',
-            action: () => {console.log("File nav clicked: removeAllAgents");},
+            action: () => {
+                setRemoveAllAgents(true);
+                console.log("File nav clicked: removeAllAgents");},
         },
         {
             key: 'removeAllWaste',
             label: 'Remove All Waste',
-            action: () => {console.log("File nav clicked: removeAllWaste");},
+            action: () => {
+                setRemoveAllWaste(true);
+                console.log("File nav clicked: removeAllWaste");},
         },
         {
             key: 'removeAll',
             label: 'Remove All',
-            action: () => {console.log("File nav clicked: removeAll");},
+            action: () => {
+                setRemoveAll(true);
+                console.log("File nav clicked: removeAll");},
+        },
+        {
+            key: 'toggleMoveAgentsMode',
+            label: moveAgentsMode ? 'Disable Move Agents' : 'Enable Move Agents',
+            action: () => {
+            toggleMoveAgentsMode();
+            console.log("Edit nav clicked: toggleMoveAgentsMode");
+            }
+        },
+        {
+        key: 'toggleMoveFoodMode',
+        label: moveFoodMode ? 'Disable Move Food' : 'Enable Move Food',
+        action: () => {
+            toggleMoveFoodMode();
+            console.log("Edit nav clicked: toggleMoveFoodMode");
+        }
         },
     ];
 

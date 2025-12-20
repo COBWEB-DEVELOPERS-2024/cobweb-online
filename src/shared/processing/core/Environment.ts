@@ -40,6 +40,8 @@ export class Environment extends Updatable {
     }
 
     clearAgents(): void {
+        // This method clears the agent table by killing all agents
+        // WebGPU implementations should override this to also clear their local agent arrays and GPU buffers
         for (const agent of this.getAgents()) {
             agent.die();
         }
@@ -144,6 +146,13 @@ export class Environment extends Updatable {
 
     clearFood(): void {
         this.clearFlag(Environment.FLAG_FOOD);
+
+        // reset food types, since
+        for (let x = 0; x < this.foodTypeArray.length; x++) {
+            for (let y = 0; y < this.foodTypeArray[x].length; y++) {
+                this.foodTypeArray[x][y] = 0;
+            }
+        }
     }
 
     removeFood(location: Location): void {
@@ -177,6 +186,8 @@ export class Environment extends Updatable {
     }
 
     clearStones(): void {
+        // this method only clears the flag bits in the grid
+        // webGPU implementations should override this to also clear their local stone arrays and GPU buffers
         this.clearFlag(Environment.FLAG_STONE);
     }
 
@@ -222,6 +233,8 @@ export class Environment extends Updatable {
     }
 
     clearDrops(): void {
+        // This method only clears the drop flag bits in the grid
+        // WebGPU implementations should override this if they maintain separate drop-related data structures
         this.clearFlag(Environment.FLAG_DROP);
     }
 

@@ -18,6 +18,20 @@ interface NavbarProps {
     setSelectedFoodColor: (color: number) => void;
     placeStonesMode: boolean;  
     onTogglePlaceStonesMode: () => void;
+    removeAllFood: boolean;
+    setRemoveAllFood: (b: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (b: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (b: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (b: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (b: boolean) => void;
+    moveAgentsMode: boolean;
+    toggleMoveAgentsMode: () => void;
+    moveFoodMode: boolean;
+    toggleMoveFoodMode: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ 
@@ -31,7 +45,21 @@ const Navbar: React.FC<NavbarProps> = ({
     selectedFoodColor,
     setSelectedFoodColor,
     placeStonesMode,
-    onTogglePlaceStonesMode
+    onTogglePlaceStonesMode,
+    removeAllFood,
+    setRemoveAllFood,
+    removeAllStones,
+    setRemoveAllStones,
+    removeAllAgents,
+    setRemoveAllAgents,
+    removeAllWaste,
+    setRemoveAllWaste,
+    removeAll,
+    setRemoveAll,
+    moveAgentsMode,
+    toggleMoveAgentsMode,
+    moveFoodMode,
+    toggleMoveFoodMode
  }: NavbarProps) => {
     function handleSpeedChange(value: number | number[]) {
         if (Array.isArray(value)) {
@@ -71,11 +99,30 @@ const Navbar: React.FC<NavbarProps> = ({
                     isDisabled={!paused}
                 > Step </Button>
             </div>
-
+        
             {/* Right Side - Settings, Views, I/O Buttons */}
             <div className="flex gap-4">
                 <FileNavButton />
-                <EditNavButton foodMode={foodMode} toggleFoodMode={toggleFoodMode} placeStonesMode = {placeStonesMode} onTogglePlaceStonesMode={onTogglePlaceStonesMode}/>
+                <EditNavButton 
+                    foodMode={foodMode} 
+                    toggleFoodMode={toggleFoodMode} 
+                    placeStonesMode={placeStonesMode} 
+                    onTogglePlaceStonesMode={onTogglePlaceStonesMode} 
+                    removeAllFood={removeAllFood} 
+                    setRemoveAllFood={setRemoveAllFood}
+                    removeAllStones={removeAllStones}
+                    setRemoveAllStones={setRemoveAllStones}
+                    removeAllAgents={removeAllAgents}
+                    setRemoveAllAgents={setRemoveAllAgents}
+                    removeAllWaste={removeAllWaste}
+                    setRemoveAllWaste={setRemoveAllWaste}
+                    removeAll={removeAll}
+                    setRemoveAll={setRemoveAll} 
+                    moveAgentsMode={moveAgentsMode}
+                    toggleMoveAgentsMode={toggleMoveAgentsMode}
+                    moveFoodMode={moveFoodMode}
+                    toggleMoveFoodMode={toggleMoveFoodMode}
+                />
                 <ViewNavButton />
                 <SimulationNavButton />
                 {foodMode && (

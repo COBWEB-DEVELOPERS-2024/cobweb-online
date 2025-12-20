@@ -12,16 +12,86 @@ const App: React.FC = () => {
 
 	const [placeStonesMode, setPlaceStonesMode] = React.useState(false);  
 	const togglePlaceStonesMode = () => setPlaceStonesMode(m => !m);
+	
+	// Remove all state variables
+	const [removeAllFood, setRemoveAllFood] = React.useState(false);
+	const [removeAllStones, setRemoveAllStones] = React.useState(false);
+	const [removeAllAgents, setRemoveAllAgents] = React.useState(false);
+	const [removeAllWaste, setRemoveAllWaste] = React.useState(false);
+	const [removeAll, setRemoveAll] = React.useState(false);
 
 	const togglePause = () => setPaused(!paused);
 	const enableStep = () => setStep(true);
 	const disableStep = () => setStep(false);
 	const toggleFoodMode = () => setFoodMode(!foodMode);
 
+	const [moveAgentsMode, setMoveAgentsMode] = React.useState(false);
+  	const [moveFoodMode, setMoveFoodMode] = React.useState(false);
+  	const toggleMoveAgentsMode = () => {
+    	setMoveAgentsMode(v => {
+      	const nv = !v;
+      	if (nv) setMoveFoodMode(false); // Avoid conflict
+      	return nv;
+    	});
+  	};
+  	const toggleMoveFoodMode = () => {
+    	setMoveFoodMode(v => {
+      	const nv = !v;
+      	if (nv) setMoveAgentsMode(false); // Avoid conflict
+      	return nv;
+    	});
+  	};
+
 	return (
 		<div className="bg-white min-h-screen flex flex-col items-center justify-center">
-			<Navbar paused={paused} togglePause={togglePause} speedFactor={speedFactor} setSpeedFactor={setSpeedFactor} enableStep={enableStep} foodMode={foodMode} toggleFoodMode={toggleFoodMode} selectedFoodColor={selectedFoodColor} setSelectedFoodColor={setSelectedFoodColor} placeStonesMode={placeStonesMode} onTogglePlaceStonesMode = {togglePlaceStonesMode}/>
-			<WebGPUCanvas paused={paused} speedFactor={speedFactor} step={step} disableStep={disableStep} foodMode={foodMode} selectedFoodColor={selectedFoodColor} placeStonesMode = {placeStonesMode}/>
+			<Navbar 
+				paused={paused} 
+				togglePause={togglePause} 
+				speedFactor={speedFactor} 
+				setSpeedFactor={setSpeedFactor} 
+				enableStep={enableStep} 
+				foodMode={foodMode} 
+				toggleFoodMode={toggleFoodMode} 
+				selectedFoodColor={selectedFoodColor} 
+				setSelectedFoodColor={setSelectedFoodColor} 
+				placeStonesMode={placeStonesMode} 
+				onTogglePlaceStonesMode={togglePlaceStonesMode}
+				removeAllFood={removeAllFood}
+				setRemoveAllFood={setRemoveAllFood}
+				removeAllStones={removeAllStones}
+				setRemoveAllStones={setRemoveAllStones}
+				removeAllAgents={removeAllAgents}
+				setRemoveAllAgents={setRemoveAllAgents}
+				removeAllWaste={removeAllWaste}
+				setRemoveAllWaste={setRemoveAllWaste}
+				removeAll={removeAll}
+				setRemoveAll={setRemoveAll}
+				moveAgentsMode={moveAgentsMode}
+        		toggleMoveAgentsMode={toggleMoveAgentsMode}
+        		moveFoodMode={moveFoodMode}
+        		toggleMoveFoodMode={toggleMoveFoodMode}
+			/>
+			<WebGPUCanvas 
+				paused={paused} 
+				speedFactor={speedFactor} 
+				step={step} 
+				disableStep={disableStep} 
+				foodMode={foodMode} 
+				selectedFoodColor={selectedFoodColor} 
+				placeStonesMode={placeStonesMode}
+				removeAllFood={removeAllFood}
+				setRemoveAllFood={setRemoveAllFood}
+				removeAllStones={removeAllStones}
+				setRemoveAllStones={setRemoveAllStones}
+				removeAllAgents={removeAllAgents}
+				setRemoveAllAgents={setRemoveAllAgents}
+				removeAllWaste={removeAllWaste}
+				setRemoveAllWaste={setRemoveAllWaste}
+				removeAll={removeAll}
+				setRemoveAll={setRemoveAll}
+				moveAgentsMode={moveAgentsMode}
+        		moveFoodMode={moveFoodMode}
+			/>
 		</div>
 	);
 };
