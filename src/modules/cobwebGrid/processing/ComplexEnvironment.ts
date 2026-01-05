@@ -4,7 +4,7 @@ import { LocationDirection } from "../../../shared/processing/core/LocationDirec
 import { ComplexAgent } from "./ComplexAgent";
 import { EnvironmentMutator } from "../../../shared/processing/core/EnvironmentMutator.ts";
 import { ComplexAgentParams } from "./ComplexAgentParams";
-import { Drop } from "../../../shared/processing/core/Drop";
+import { Waste } from "../../../shared/processing/core/Waste.ts";
 import { Simulation } from "./Simulation.ts";
 
 export class ComplexEnvironment extends Environment {
@@ -21,7 +21,7 @@ export class ComplexEnvironment extends Environment {
         agentParams: { agentParams: ComplexAgentParams[] },
         keepOldAgents = false,
         keepOldArray = false,
-        keepOldDrops = false
+        keepOldWaste = false
     ): void {
         this.data = envParams;
         this.agentData = agentParams.agentParams;
@@ -34,8 +34,8 @@ export class ComplexEnvironment extends Environment {
             this.agentTable.clear();
         }
 
-        if (!keepOldDrops) {
-            this.clearDrops();
+        if (!keepOldWaste) {
+            this.clearWaste();
         }
     }
 
@@ -46,7 +46,7 @@ export class ComplexEnvironment extends Environment {
             let tries = 0;
             do {
                 l = this.topology!.getRandomLocation();
-            } while (tries++ < 100 && (this.hasStone(l) || this.hasDrop(l) || this.hasAgent(l)));
+            } while (tries++ < 100 && (this.hasStone(l) || this.hasWaste(l) || this.hasAgent(l)));
             if (tries < 100) this.addStone(l);
         }
 
@@ -62,7 +62,7 @@ export class ComplexEnvironment extends Environment {
                 let tries = 0;
                 do {
                     loc = this.topology!.getRandomLocation();
-                } while (tries++ < 100 && (this.hasAgent(loc) || this.hasStone(loc) || this.hasDrop(loc)));
+                } while (tries++ < 100 && (this.hasAgent(loc) || this.hasStone(loc) || this.hasWaste(loc)));
                 if (tries < 100) {
                     this.spawnAgent(new LocationDirection(loc), i);
                 }
@@ -71,7 +71,7 @@ export class ComplexEnvironment extends Environment {
     }
 
     addAgent(location: Location, type = 0): void {
-        if (!this.hasAgent(location) && !this.hasStone(location) && !this.hasDrop(location)) {
+        if (!this.hasAgent(location) && !this.hasStone(location) && !this.hasWaste(location)) {
             this.spawnAgent(new LocationDirection(location), type);
         }
     }
@@ -93,18 +93,18 @@ export class ComplexEnvironment extends Environment {
 
     override update(): void {
         super.update();
-        this.updateDrops();
+        this.updateWaste();
         for (const plugin of this.plugins.values()) {
             plugin.update();
         }
     }
 
-    updateDrops(): void {
+    updateWaste(): void {
         for (let x = 0; x < this.topology!.width; x++) {
             for (let y = 0; y < this.topology!.height; y++) {
                 const l = new Location(x, y);
-                if (!this.hasDrop(l)) continue;
-                const d: Drop | null = this.getDrop(l);
+                if (!this.hasWaste(l)) continue;
+                const d: Waste | null = this.getWaste(l);
                 d?.update();
             }
         }

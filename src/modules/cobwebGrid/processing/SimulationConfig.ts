@@ -8,7 +8,7 @@ export class SimulationConfig extends SimulationParams {
     agentTypeCount: number;
 
     keepOldArray: boolean;
-    keepOldDrops: boolean;
+    keepOldWaste: boolean;
     keepOldAgents: boolean;
     keepOldPackets: boolean;
     spawnNewAgents: boolean;
@@ -25,7 +25,7 @@ export class SimulationConfig extends SimulationParams {
         this.agentTypeCount = 4;
 
         this.keepOldArray = false;
-        this.keepOldDrops = false;
+        this.keepOldWaste = false;
         this.keepOldAgents = false;
         this.keepOldPackets = false;
         this.spawnNewAgents = true;
@@ -42,7 +42,7 @@ export class SimulationConfig extends SimulationParams {
     }
 
     isContinuation(): boolean {
-        return this.keepOldAgents || this.keepOldArray || this.keepOldPackets || this.keepOldDrops;
+        return this.keepOldAgents || this.keepOldArray || this.keepOldPackets || this.keepOldWaste;
     }
 
     getPluginParameters(): any[] {

@@ -34,8 +34,8 @@ export class VisionState implements AgentState {
             if (this.environment.hasFood(destPos))
                 return new SeeInfo(dist, Environment.FLAG_FOOD, VisionState.LOOK_DISTANCE);
 
-            if (this.environment.hasDrop(destPos))
-                return new SeeInfo(dist, Environment.FLAG_DROP, VisionState.LOOK_DISTANCE);
+            if (this.environment.hasWaste(destPos))
+                return new SeeInfo(dist, Environment.FLAG_WASTE, VisionState.LOOK_DISTANCE);
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error

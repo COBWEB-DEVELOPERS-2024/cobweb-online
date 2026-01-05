@@ -1,6 +1,6 @@
 import { Topology } from './Topology';
 import { Location } from './Location';
-import { Drop } from './Drop';
+import { Waste } from './Waste.ts';
 import { Updatable } from './Updatable';
 import { Agent } from './Agent.ts';
 import { EnvironmentMutator } from './EnvironmentMutator';
@@ -9,14 +9,14 @@ export class Environment extends Updatable {
     static FLAG_STONE = 1;
     static FLAG_FOOD = 2;
     static FLAG_AGENT = 3;
-    static FLAG_DROP = 4;
+    static FLAG_WASTE = 4;
 
     simulation: any;
     topology: Topology | null = null;
     agentTable: Map<string, Agent> = new Map();
     flagArray: number[][] = [];
     foodTypeArray: number[][] = [];
-    dropArray: (Drop | null)[][] = [];
+    wasteArray: (Waste | null)[][] = [];
 
     constructor(simulation: any) {
         super();
@@ -29,7 +29,7 @@ export class Environment extends Updatable {
         if (!keepOldArray) {
             this.flagArray = Array.from({ length: width }, () => Array.from({ length: height }, () => 0));
             this.foodTypeArray = Array.from({ length: width }, () => Array.from({ length: height }, () => 0));
-            this.dropArray = Array.from({ length: width }, () => Array.from({ length: height }, () => null));
+            this.wasteArray = Array.from({ length: width }, () => Array.from({ length: height }, () => null));
         }
     }
 
@@ -159,8 +159,8 @@ export class Environment extends Updatable {
             for (let y = 0; y < this.topology!.height; ++y) {
                 const loc = new Location(x, y);
                 if (this.testFlag(loc, flag)) {
-                    if (flag === Environment.FLAG_DROP) {
-                        this.removeDrop(loc);
+                    if (flag === Environment.FLAG_WASTE) {
+                        this.removeWaste(loc);
                     } else {
                         this.setFlag(loc, flag, false);
                     }
@@ -172,7 +172,7 @@ export class Environment extends Updatable {
     addStone(location: Location): void {
         if (this.hasAgent(location)) return;
         if (this.hasFood(location)) this.removeFood(location);
-        if (this.testFlag(location, Environment.FLAG_DROP)) this.setFlag(location, Environment.FLAG_DROP, false);
+        if (this.testFlag(location, Environment.FLAG_WASTE)) this.setFlag(location, Environment.FLAG_WASTE, false);
         this.setFlag(location, Environment.FLAG_STONE, true);
     }
 
@@ -188,29 +188,29 @@ export class Environment extends Updatable {
         this.setFlag(location, Environment.FLAG_STONE, false);
     }
 
-    addDrop(location: Location, drop: Drop): void {
+    addWaste(location: Location, waste: Waste): void {
         if (this.hasFood(location)) {
             this.removeFood(location);
         }
-        this.setFlag(location, Environment.FLAG_DROP, true);
-        this.dropArray[location.x][location.y] = drop;
+        this.setFlag(location, Environment.FLAG_WASTE, true);
+        this.wasteArray[location.x][location.y] = waste;
     }
 
-    removeDrop(location: Location): void {
-        if (this.hasDrop(location)) {
-            const drop = this.dropArray[location.x][location.y];
-            drop?.prepareRemove();
-            this.setFlag(location, Environment.FLAG_DROP, false);
-            this.dropArray[location.x][location.y] = null;
+    removeWaste(location: Location): void {
+        if (this.hasWaste(location)) {
+            const waste = this.wasteArray[location.x][location.y];
+            waste?.prepareRemove();
+            this.setFlag(location, Environment.FLAG_WASTE, false);
+            this.wasteArray[location.x][location.y] = null;
         }
     }
 
-    getDrop(location: Location): Drop | null {
-        return this.dropArray[location.x]?.[location.y] ?? null;
+    getWaste(location: Location): Waste | null {
+        return this.wasteArray[location.x]?.[location.y] ?? null;
     }
 
-    hasDrop(location: Location): boolean {
-        return this.testFlag(location, Environment.FLAG_DROP);
+    hasWaste(location: Location): boolean {
+        return this.testFlag(location, Environment.FLAG_WASTE);
     }
 
     hasStone(location: Location): boolean {
@@ -221,8 +221,8 @@ export class Environment extends Updatable {
         return this.getAgent(location) != null;
     }
 
-    clearDrops(): void {
-        this.clearFlag(Environment.FLAG_DROP);
+    clearWaste(): void {
+        this.clearFlag(Environment.FLAG_WASTE);
     }
 
     killOffgridAgents(): void {

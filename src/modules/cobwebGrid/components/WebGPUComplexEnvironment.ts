@@ -125,7 +125,8 @@ export class WebGPUComplexEnvironment extends Environment {
     }
 
     override addStone(loc: Location): void {
-        if (this.hasStone(loc) || this.hasAgent(loc) || this.hasDrop(loc)) return;
+// TODO: check for existing food, stones, agents, waste
+        if (this.hasStone(loc) || this.hasAgent(loc) || this.hasWaste(loc)) return;
         super.addStone(loc);
         this.stones.push({ x: loc.x, y: loc.y });
         this.uploadStonesToGPU();

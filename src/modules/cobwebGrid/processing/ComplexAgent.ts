@@ -125,9 +125,9 @@ export class ComplexAgent extends Agent {
             else this.bumpWall();
         }
 
-        if (dest && this.environment.hasDrop(dest)) {
-            const drop = this.environment.getDrop(dest);
-            if (drop?.canStep(this)) drop.onStep(this);
+        if (dest && this.environment.hasWaste(dest)) {
+            const waste = this.environment.getWaste(dest);
+            if (waste?.canStep(this)) waste.onStep(this);
             else this.bumpWall();
         }
 
@@ -157,7 +157,7 @@ export class ComplexAgent extends Agent {
         return !!(dest &&
             this.environment &&
             !this.environment.hasStone(dest) &&
-            (!this.environment.hasDrop(dest) || this.environment.getDrop(dest)?.canStep(this)) &&
+            (!this.environment.hasWaste(dest) || this.environment.getWaste(dest)?.canStep(this)) &&
             !this.environment.hasAgent(dest));
     }
 

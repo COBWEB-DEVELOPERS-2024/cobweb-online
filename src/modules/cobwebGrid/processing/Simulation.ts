@@ -30,12 +30,12 @@ export class Simulation {
         this.environment.addFood(location, type);
     }
 
-    addRock(i: number, j: number): void {
+    addStone(i: number, j: number): void {
         const loc = new Location(i, j);
         this.environment.addStone(loc);
     }
     
-    removeRock(i: number, j: number): void {
+    removeStone(i: number, j: number): void {
         const loc = new Location(i, j);
         (this.environment as any).removeStone
       ? (this.environment as any).removeStone(loc)
