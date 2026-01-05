@@ -14,7 +14,6 @@ const FoodModeNavButton: React.FC<FoodModeNavButtonProps> = ({ foodMode, selecte
             label: <span className="text-red-600">
                 {selectedFoodColor === 0 ? 'Placing Red Food' : 'Place Red Food'}
                 </span>,
-            // TODO: make the color aaccurate to whatever the food color is
             action: () => setSelectedFoodColor(0) // assuming 0 is the index for red food,
         },
         {

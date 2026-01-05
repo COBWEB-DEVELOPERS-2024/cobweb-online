@@ -76,8 +76,12 @@ export class ComplexAgent extends Agent {
             newPos = this.simulation.getAgentListener().onTryStep(this, oldPos, newPos);
         }
 
-        if (oldPos) this.environment.setAgent(oldPos, null);
-        if (newPos) this.environment.setAgent(newPos, this);
+        // safety check: is the environment initialized? (temporary fix)
+        // TODO: eventually remove this check after ensuring proper initialization order
+        if (this.environment) {
+            if (oldPos) this.environment.setAgent(oldPos, null);
+            if (newPos) this.environment.setAgent(newPos, this);
+        }
 
         this.simulation.getAgentListener().onStep(this, oldPos, newPos);
         this.position = newPos;

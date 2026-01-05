@@ -18,9 +18,37 @@ interface WebGPUCanvasProps {
     foodMode: boolean;
     selectedFoodColor: number;
     placeStonesMode: boolean;
+    removeAllFood: boolean;
+    setRemoveAllFood: (value: boolean) => void;
+    removeAllStones: boolean;
+    setRemoveAllStones: (value: boolean) => void;
+    removeAllAgents: boolean;
+    setRemoveAllAgents: (value: boolean) => void;
+    removeAllWaste: boolean;
+    setRemoveAllWaste: (value: boolean) => void;
+    removeAll: boolean;
+    setRemoveAll: (value: boolean) => void;
 }
 
-const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, selectedFoodColor,placeStonesMode}: WebGPUCanvasProps) => {
+const WebGPUCanvas = ({ 
+    paused, 
+    speedFactor, 
+    step, 
+    disableStep, 
+    foodMode, 
+    selectedFoodColor,
+    placeStonesMode,
+    removeAllFood,
+    setRemoveAllFood,
+    removeAllStones,
+    setRemoveAllStones,
+    removeAllAgents,
+    setRemoveAllAgents,
+    removeAllWaste,
+    setRemoveAllWaste,
+    removeAll,
+    setRemoveAll
+}: WebGPUCanvasProps) => {
     const hasInit = useRef(false);
     const [ready, setReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -96,6 +124,15 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         // else, could handle other click interactions here
     }
 
+    // helper: update renderer shapes
+    function updateRendererShapes() {
+    if (rendererRef.current) {
+        rendererRef.current.updateShapes(
+            triLocations, triRotations, triColors, sqLocations, sqColors, rockRef.current
+        );
+    }
+    }
+
     // useEffect to initialize the canvas and renderer
     useEffect(() => {
         if (hasInit.current) return;
@@ -166,6 +203,64 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         disableStep();
     }, [step]);
 
+    // useEffect to handle removeAllFood
+    useEffect(() => {
+        if (!removeAllFood || !simulationRef.current) return;
+        simulationRef.current.removeAllFood();
+        updateRenderingData();
+        updateRendererShapes();
+        setRemoveAllFood(false);
+    }, [removeAllFood]);
+
+    // useEffect to handle removeAllStones
+    useEffect(() => {
+        if (!removeAllStones || !simulationRef.current) return;
+        simulationRef.current.removeAllStones();
+        updateRenderingData();
+        updateRendererShapes();
+        setRemoveAllStones(false);
+    }, [removeAllStones]);
+
+    // useEffect to handle removeAllAgents
+    useEffect(() => {
+        if (!removeAllAgents || !simulationRef.current) return;
+
+        // debug logs
+        console.log('🗑️ removeAllAgents triggered');
+        console.log('Agents before:', simulationRef.current.getAgentData().length);
+        
+        simulationRef.current.removeAllAgents();
+        
+        // debug logs
+        console.log('Agents after:', simulationRef.current.getAgentData().length);
+
+        updateRenderingData();
+        updateRendererShapes();
+        setRemoveAllAgents(false);
+    }, [removeAllAgents]);
+
+    // useEffect to handle removeAllWaste
+    useEffect(() => {
+        if (!removeAllWaste || !simulationRef.current) return;
+
+        simulationRef.current.removeAllWaste();
+
+        updateRenderingData();
+        updateRendererShapes();
+        setRemoveAllWaste(false);
+    }, [removeAllWaste]);
+
+    // useEffect to handle removeAll
+    useEffect(() => {
+        if (!removeAll || !simulationRef.current) return;
+
+        simulationRef.current.removeAll();
+        
+        updateRenderingData();
+        updateRendererShapes();
+        setRemoveAll(false);
+    }, [removeAll]);
+
     function clientToCanvasXY(ev: MouseEvent, canvas: HTMLCanvasElement) {
         const rect = canvas.getBoundingClientRect();
         const cssX = ev.clientX - rect.left;
@@ -202,7 +297,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
     const placeRockEvt = (ev: MouseEvent) => {
         const { x, y } = clientToCanvasXY(ev, canvas);
         const { i, j } = canvasXYToCell(x, y, canvas);
-        sim.addRock(i, j);
+        sim.addStone(i, j);
         refresh();
     };
 
@@ -219,7 +314,7 @@ const WebGPUCanvas = ({ paused, speedFactor, step, disableStep, foodMode, select
         if(!placeStonesMode) return;    //only remove rocks if in place stones mode
         const { x, y } = clientToCanvasXY(ev, canvas);
         const { i, j } = canvasXYToCell(x, y, canvas);
-        sim.removeRock(i, j);
+        sim.removeStone(i, j);
         refresh();
     };
 
