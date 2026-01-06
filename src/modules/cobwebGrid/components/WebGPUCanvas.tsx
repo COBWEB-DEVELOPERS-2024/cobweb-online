@@ -111,9 +111,6 @@ const WebGPUCanvas = ({
                 rockRef.current
             );
         }
-        
-        // debug log
-        console.log(`Added food at grid position (${x}, ${y})`);
     }
 
     // helper: handle mouse click for food placement

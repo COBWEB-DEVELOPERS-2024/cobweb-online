@@ -113,22 +113,33 @@ export class WebGPUComplexEnvironment extends Environment {
         });
     }
 
-    addAgent(location: Location, type = 0) {
-        // TODO: check for existing food, stones, agents, waste
+    addAgent(loc: Location, type = 0) {
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            return;
+        }
         if (this.agents.length >= this.maxAgents) return;
         const agent = new ComplexAgent(this.simulation, type);
         agent.id = this.agents.length;
-        agent.position = new LocationDirection(location);
+        agent.position = new LocationDirection(loc);
         agent.energy = 200; // Ensure enough energy to test reproduction
         agent.alive = true;
         this.agents.push(agent);
-        this.setAgent(location, agent);
+        this.setAgent(loc, agent);
     }
 
     override addFood(loc: Location, type: number): void {
-        // TODO: check for existing food, stones, agents, waste
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            // // debug log
+            // console.log(`Cannot add food at (${loc.x}, ${loc.y}): space occupied.`);
+            return;
+        }
         super.addFood(loc, type);
         this.food.push({ x: loc.x, y: loc.y, foodType: type });
+
+        // // debug log
+        // console.log(`Added food at grid position (${loc.x}, ${loc.y})`);
     }
 
     getStones() {
@@ -136,7 +147,10 @@ export class WebGPUComplexEnvironment extends Environment {
     }
 
     override addStone(loc: Location): void {
-        // TODO: check for existing food, stones, agents, waste
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            return;
+        }
         if (this.hasStone(loc) || this.hasAgent(loc) || this.hasWaste(loc)) return;
         super.addStone(loc);
         this.stones.push({ x: loc.x, y: loc.y });

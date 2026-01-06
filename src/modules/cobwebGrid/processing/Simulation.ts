@@ -115,8 +115,8 @@ export class Simulation {
     }
 
     // getagentlistener is referenced mutiple times in ComplexAgent.ts as a method to the simulation.ts class
-    // however, it was never implemented, so here is a placeholder implementation
-    // TODO: implement actual agent listener methods for event tracking, should be in a different feature
+    // however, i don't think it was ever implemented, so I've put a placeholder implementation for now ...  (-‿-")
+    // TODO: implement actual agent listener methods for event tracking, not sure if this should be in a different feature (?) 
     getAgentListener(): any {
         return {
             onDeath: () => {},
