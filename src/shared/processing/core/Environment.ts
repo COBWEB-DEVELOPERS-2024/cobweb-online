@@ -1,8 +1,8 @@
 import { Topology } from './Topology';
 import { Location } from './Location';
-import { Waste } from './Waste.ts';
+import { Waste } from './Waste';
 import { Updatable } from './Updatable';
-import { Agent } from './Agent.ts';
+import { Agent } from './Agent';
 import { EnvironmentMutator } from './EnvironmentMutator';
 
 export class Environment extends Updatable {

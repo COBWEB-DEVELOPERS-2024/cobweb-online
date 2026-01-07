@@ -268,12 +268,8 @@ export class WebGPUComplexEnvironment extends Environment {
                 0.5,
                 0.5,
                 0.5,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.x ?? 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.y ?? 0,
+                a.position?.direction?.x ?? 0,
+                a.position?.direction?.y ?? 0,
                 Math.random()
             ], i * 8);
         }
@@ -349,19 +345,21 @@ export class WebGPUComplexEnvironment extends Environment {
             const agent = this.agents[i];
             const offset = i * 10;
             // Update agent state
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
+            if (!agent.position) {
+                throw new Error(`Agent ${i} has no position - agent should have a position`);
+            }
+            // TODO:(?) Edit Agent implementation to ensure that position is never null
+            // Not sure if this would be the right approach as that seems to be a larger change to the Agent class design (?)
+
             agent.position.x = uintView[offset];
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             agent.position.y = uintView[offset + 1];
             agent.energy = uintView[offset + 4];
             agent.alive = uintView[offset + 5] === 1;
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             agent.position.direction = new Direction(intView[offset + 6], intView[offset + 7]);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             this.setAgent(agent.position, agent);
 
             // Handle reproduction
@@ -370,8 +368,7 @@ export class WebGPUComplexEnvironment extends Environment {
                 const child = new ComplexAgent(this.simulation, agent.type);
                 child.setController(childCtrl);
                 child.id = this.agents.length;
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
+
                 child.position = new LocationDirection(new Location(agent.position.x, agent.position.y));
                 child.energy = 100;
                 child.alive = true;
@@ -408,22 +405,13 @@ export class WebGPUComplexEnvironment extends Environment {
         for (let i = 0; i < this.agents.length; i++) {
             const a = this.agents[i];
             staging.set([
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-
-                Math.floor(a.position.x),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                Math.floor(a.position.y),
+                Math.floor(a.position?.x ?? 0),
+                Math.floor(a.position?.y ?? 0),
                 0, 0,
                 Math.floor(a.energy),
                 a.alive ? 1 : 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.x ?? 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.y ?? 0,
+                a.position?.direction?.x ?? 0,
+                a.position?.direction?.y ?? 0,
                 i * 8,
                 0,
             ], i * 10);
