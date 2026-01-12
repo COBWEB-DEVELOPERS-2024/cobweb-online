@@ -8,24 +8,28 @@ import { LocationDirection } from "../../../shared/processing/core/LocationDirec
 import { Direction } from "../../../shared/processing/core/Direction.ts";
 import { GeneticAI } from "./GeneticAI.ts";
 
-type AgentData = { x: number; y: number; foodType: number };
+type FoodData = { x: number; y: number; foodType: number };
 type StoneData = { x: number; y: number };
+type WasteData = { x: number; y: number };
 
 export class WebGPUComplexEnvironment extends Environment {
     device: GPUDevice;
     simulation: Simulation;
     agents: ComplexAgent[] = [];
-    food: AgentData[] = [];
+    food: FoodData[] = [];
     stones: StoneData[] = [];
+    waste: WasteData[] = [];
 
     maxAgents = 1000;
     maxFood = 500;
     maxStones = 200;
+    maxWaste = 200;
     uploadedFoodCount = 0;
 
     agentBuffer: GPUBuffer | null = null;
     foodBuffer: GPUBuffer | null = null;
     stoneBuffer: GPUBuffer | null = null;
+    wasteBuffer: GPUBuffer | null = null;
     simParamsBuffer: GPUBuffer | null = null;
     occupancyGridBuffer: GPUBuffer | null = null;
     weightsBuffer: GPUBuffer | null = null;
@@ -57,6 +61,12 @@ export class WebGPUComplexEnvironment extends Environment {
 
         this.stoneBuffer = this.device.createBuffer({
             size: this.maxStones * 2 * 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        this.wasteBuffer = this.device.createBuffer({
+            size: this.maxWaste * 2 * 4,
+            // TODO: check if this size is accurate
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         });
 
@@ -103,29 +113,45 @@ export class WebGPUComplexEnvironment extends Environment {
         });
     }
 
-    addAgent(location: Location, type = 0) {
+    addAgent(loc: Location, type = 0) {
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            return;
+        }
         if (this.agents.length >= this.maxAgents) return;
         const agent = new ComplexAgent(this.simulation, type);
         agent.id = this.agents.length;
-        agent.position = new LocationDirection(location);
+        agent.position = new LocationDirection(loc);
         agent.energy = 200; // Ensure enough energy to test reproduction
         agent.alive = true;
         this.agents.push(agent);
-        this.setAgent(location, agent);
+        this.setAgent(loc, agent);
     }
 
     override addFood(loc: Location, type: number): void {
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            // // debug log
+            // console.log(`Cannot add food at (${loc.x}, ${loc.y}): space occupied.`);
+            return;
+        }
         super.addFood(loc, type);
         this.food.push({ x: loc.x, y: loc.y, foodType: type });
-    }
 
+        // // debug log
+        // console.log(`Added food at grid position (${loc.x}, ${loc.y})`);
+    }
 
     getStones() {
         return this.stones;
     }
 
     override addStone(loc: Location): void {
-        if (this.hasStone(loc) || this.hasAgent(loc) || this.hasDrop(loc)) return;
+        // check for existing food, stones, agents, waste
+        if (this.hasAgent(loc) || this.hasFood(loc) || this.hasStone(loc) || this.hasWaste(loc)) {
+            return;
+        }
+        if (this.hasStone(loc) || this.hasAgent(loc) || this.hasWaste(loc)) return;
         super.addStone(loc);
         this.stones.push({ x: loc.x, y: loc.y });
         this.uploadStonesToGPU();
@@ -136,33 +162,100 @@ export class WebGPUComplexEnvironment extends Environment {
         this.stones = this.stones.filter(s => !(s.x === loc.x && s.y === loc.y));
         this.uploadStonesToGPU();
     }
+    
+    removeFood(loc: Location): void {
+        super.removeFood(loc);
+        this.food = this.food.filter(f => !(f.x === loc.x && f.y === loc.y));
+        this.uploadFoodToGPU();
+    }
 
-    async uploadAgentsToGPU() {
-        const staging = new Uint32Array(this.maxAgents * 10);
-        for (let i = 0; i < this.agents.length; i++) {
-            const a = this.agents[i];
-            staging.set([
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
+    removeAgent(loc: Location): void {
+        super.removeAgent(loc);
+        this.agents = this.agents.filter(a => {
+            // it is possible for agent to have null location
+            const x = a.position?.x ?? 0;
+            const y = a.position?.y ?? 0;
+            return !(x === loc.x && y === loc.y);
+        });
+        this.uploadAgentsToGPU();
+    }
 
-                Math.floor(a.position.x),
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                Math.floor(a.position.y),
-                0, 0,
-                Math.floor(a.energy),
-                a.alive ? 1 : 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.x ?? 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.y ?? 0,
-                i * 8,
-                0,
-            ], i * 10);
+
+    removeWaste(loc: Location): void {
+        // TODO: test these methods after waste functionality are implemented
+        super.removeWaste(loc);
+        this.waste = this.waste.filter(w => !(w.x === loc.x && w.y === loc.y));
+        this.uploadWasteToGPU();
+    }
+
+    removeAllFood(): void {
+        // Iterate over entire grid to remove food from every location
+        for (let x = 0; x < 64; x++) {
+            for (let y = 0; y < 64; y++) {
+                const loc = new Location(x, y);
+                if (this.hasFood(loc)) {
+                    super.removeFood(loc);  // Remove from environment's internal grid
+                }
+            }
         }
-        this.device.queue.writeBuffer(this.agentBuffer!, 0, staging.buffer);
+        // empty local food array
+        this.food = [];
+        this.uploadFoodToGPU();
+    }
+
+    removeAllStones(): void {
+        // Iterate over entire grid to remove stones from every location
+        for (let x = 0; x < 64; x++) {
+            for (let y = 0; y < 64; y++) {
+                const loc = new Location(x, y);
+                if (this.hasStone(loc)) {
+                    super.removeStone(loc);  // Remove from environment's internal grid
+                }
+            }
+        }
+        // empty local food array
+        this.stones = [];
+        this.uploadStonesToGPU();
+    }
+
+    removeAllAgents(): void {
+        // // debug logs
+        // console.log('removeAllAgents called in WebGPUComplexEnvironment');
+        // console.log('Agents before removal:', this.agents.length);
+        
+        // Iterate over entire grid to remove agents from every location
+        for (let x = 0; x < 64; x++) {
+            for (let y = 0; y < 64; y++) {
+                const loc = new Location(x, y);
+                if (this.hasAgent(loc)) {
+                    console.log(`🤖 Removing agent at (${x}, ${y})`);
+                    super.removeAgent(loc);  // Remove from environment's internal grid
+                }
+            }
+        }
+
+        // empty local agent array
+        this.agents = [];
+
+        // // debug logs
+        // console.log('Agents after removal:', this.agents.length);
+
+        this.uploadAgentsToGPU();
+    }
+
+    removeAllWaste(): void {
+        // TODO: test these methods after waste functionality are implemented
+        for (let x = 0; x < 64; x++) {
+            for (let y = 0; y < 64; y++) {
+                const loc = new Location(x, y);
+                if (this.hasWaste(loc)) {
+                    super.removeWaste(loc);  // Remove from environment's internal grid
+                }
+            }
+        }
+        // Clear the local waste tracking array
+        this.waste = [];
+        this.uploadWasteToGPU();
     }
 
     async uploadInputsToGPU() {
@@ -175,12 +268,8 @@ export class WebGPUComplexEnvironment extends Environment {
                 0.5,
                 0.5,
                 0.5,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.x ?? 0,
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
-                a.position.direction?.y ?? 0,
+                a.position?.direction?.x ?? 0,
+                a.position?.direction?.y ?? 0,
                 Math.random()
             ], i * 8);
         }
@@ -256,19 +345,21 @@ export class WebGPUComplexEnvironment extends Environment {
             const agent = this.agents[i];
             const offset = i * 10;
             // Update agent state
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
+            if (!agent.position) {
+                throw new Error(`Agent ${i} has no position - agent should have a position`);
+            }
+            // TODO:(?) Edit Agent implementation to ensure that position is never null
+            // Not sure if this would be the right approach as that seems to be a larger change to the Agent class design (?)
+
             agent.position.x = uintView[offset];
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             agent.position.y = uintView[offset + 1];
             agent.energy = uintView[offset + 4];
             agent.alive = uintView[offset + 5] === 1;
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             agent.position.direction = new Direction(intView[offset + 6], intView[offset + 7]);
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error
+
             this.setAgent(agent.position, agent);
 
             // Handle reproduction
@@ -277,8 +368,7 @@ export class WebGPUComplexEnvironment extends Environment {
                 const child = new ComplexAgent(this.simulation, agent.type);
                 child.setController(childCtrl);
                 child.id = this.agents.length;
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-expect-error
+
                 child.position = new LocationDirection(new Location(agent.position.x, agent.position.y));
                 child.energy = 100;
                 child.alive = true;
@@ -308,6 +398,45 @@ export class WebGPUComplexEnvironment extends Environment {
             staging.set([this.stones[i].x, this.stones[i].y], i * 2);
         }
         this.device.queue.writeBuffer(this.stoneBuffer!, 0, staging.buffer);
+    }
+
+    async uploadAgentsToGPU() {
+        const staging = new Uint32Array(this.maxAgents * 10);
+        for (let i = 0; i < this.agents.length; i++) {
+            const a = this.agents[i];
+            staging.set([
+                Math.floor(a.position?.x ?? 0),
+                Math.floor(a.position?.y ?? 0),
+                0, 0,
+                Math.floor(a.energy),
+                a.alive ? 1 : 0,
+                a.position?.direction?.x ?? 0,
+                a.position?.direction?.y ?? 0,
+                i * 8,
+                0,
+            ], i * 10);
+        }
+        this.device.queue.writeBuffer(this.agentBuffer!, 0, staging.buffer);
+    }
+
+    async uploadWasteToGPU() {
+        // TODO: test waste uploading after waste functionality are implemented
+        // Collect all waste positions from the 2D wasteArray (inherited from Environment)
+        this.waste = [];
+        for (let x = 0; x < 64; x++) {
+            for (let y = 0; y < 64; y++) {
+                if (this.wasteArray[x]?.[y]) {
+                    this.waste.push({ x, y });
+                }
+            }
+        }
+
+        // Upload to GPU buffer (same format as stones: x, y pairs)
+        const staging = new Uint32Array(this.maxWaste * 2);
+        for (let i = 0; i < Math.min(this.waste.length, this.maxWaste); i++) {
+            staging.set([this.waste[i].x, this.waste[i].y], i * 2);
+        }
+        this.device.queue.writeBuffer(this.wasteBuffer!, 0, staging.buffer);
     }
 
     async downloadFoodFromGPU() {
