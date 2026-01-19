@@ -4,7 +4,7 @@ import { ComplexAgentParams } from "./ComplexAgentParams.ts";
 import { LocationDirection } from "../../../shared/processing/core/LocationDirection.ts";
 import { Environment } from "../../../shared/processing/core/Environment.ts";
 import {StateParameter} from "../../../shared/processing/core/StateParameter.ts";
-import {AgentState} from "./plugins/AgentState.ts";
+import {AgentState} from "./plugins/AgentStateField.ts";
 import { LinearWeightsControllerParams } from "./ai/LinearWeightsControllerParams";
 
 

@@ -1,7 +1,7 @@
 import { ComplexAgent } from "../ComplexAgent";
 import { Environment } from "../../../../shared/processing/core/Environment";
 import { LocationDirection } from "../../../../shared/processing/core/LocationDirection";
-import { AgentState } from "./AgentState";
+import { AgentState } from "./AgentStateField";
 import { SeeInfo } from "./SeeInfo";
 
 export class VisionState implements AgentState {
